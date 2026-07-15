@@ -1,0 +1,278 @@
+{
+  "manifest_version": "1.1",
+  "brand": "Mental Skills",
+  "rules": {
+    "design_reference_assets_are_not_sent_to_telegram": true,
+    "runtime_images_contain_no_dynamic_text": true,
+    "text_interface_must_remain_complete_without_images": true,
+    "max_runtime_image_frequency": "one image per meaningful stage, not every node",
+    "missing_asset_fallback": "log warning and render text-only screen",
+    "system_telegram_buttons_are_not_recolorable": true,
+    "runtime_images_may_be_reused_across_scenarios": true,
+    "provided_assets_must_not_be_redrawn_without_approval": true,
+    "use_exact_user_supplied_reference_files": true
+  },
+  "assets": {
+    "brand_graphic_elements": {
+      "title": "Фирменные графические элементы",
+      "purpose": "Главный референс линий, рамок, паттернов, акцентов и инфографики.",
+      "runtime": false,
+      "allowed_roles": [
+        "design_reference"
+      ],
+      "alt": "Брендборд Mental Skills с графическими элементами чёрно-жёлтой визуальной системы.",
+      "path": "assets/reference/brand_graphic_elements.png",
+      "kind": "design_reference",
+      "sha256": "e5c6166fc2ef67c889f12c815d22f51e75cc6a00b242666ec8b797f9d03e2202",
+      "file_size_bytes": 2423944,
+      "width_px": 1672,
+      "height_px": 941,
+      "format": "PNG",
+      "source": "latest_user_upload"
+    },
+    "brand_illustration_style": {
+      "title": "Стиль иллюстраций",
+      "purpose": "Главный референс света, композиции, героев и спортивной среды.",
+      "runtime": false,
+      "allowed_roles": [
+        "design_reference"
+      ],
+      "alt": "Брендборд Mental Skills со стилем спортивных иллюстраций.",
+      "path": "assets/reference/brand_illustration_style.png",
+      "kind": "design_reference",
+      "sha256": "3f06481f6267fffcb3b9ba73ca712542899382daf283b3193e346d0be0306b27",
+      "file_size_bytes": 2428063,
+      "width_px": 1672,
+      "height_px": 941,
+      "format": "PNG",
+      "source": "latest_user_upload"
+    },
+    "ui_dialogue_choice": {
+      "title": "Диалог и выбор",
+      "purpose": "Вступление в ситуацию и экран выбора реакции родителя.",
+      "runtime": true,
+      "allowed_roles": [
+        "scenario_intro",
+        "choice_intro"
+      ],
+      "alt": "Два диалоговых облака с вопросительным знаком в фирменном стиле.",
+      "path": "assets/runtime/ui_dialogue_choice.png",
+      "kind": "runtime_photo",
+      "sha256": "a8723816acfa038da9c1b31316fb51272d5de03c9dad9f57b8eb2d7632e54f2f",
+      "file_size_bytes": 2341276,
+      "width_px": 1254,
+      "height_px": 1254,
+      "format": "PNG",
+      "source": "user_provided_runtime_asset"
+    },
+    "ui_question_card": {
+      "title": "Вопрос и пояснение",
+      "purpose": "FAQ, уточняющий вопрос, раздел «Почему это важно».",
+      "runtime": true,
+      "allowed_roles": [
+        "faq",
+        "clarification",
+        "about_method"
+      ],
+      "alt": "Диалоговая карточка и маленькое облако с вопросительным знаком.",
+      "path": "assets/runtime/ui_question_card.png",
+      "kind": "runtime_photo",
+      "sha256": "e4d795601793c166b97a32badbe97a1d1a4bd573c9c054a5823b4d5b4d8b98a0",
+      "file_size_bytes": 2373351,
+      "width_px": 1254,
+      "height_px": 1254,
+      "format": "PNG",
+      "source": "user_provided_runtime_asset"
+    },
+    "ui_achievement": {
+      "title": "Завершение и достижение",
+      "purpose": "Завершение ситуации или всего модуля.",
+      "runtime": true,
+      "allowed_roles": [
+        "scenario_completion",
+        "module_completion"
+      ],
+      "alt": "Кубок со звездой в фирменной бело-жёлтой графике.",
+      "path": "assets/runtime/ui_achievement.png",
+      "kind": "runtime_photo",
+      "sha256": "04b998c17310342ca0cf69de005a335fbff0c4e5d708226817478ac5c099a515",
+      "file_size_bytes": 2434428,
+      "width_px": 1254,
+      "height_px": 1254,
+      "format": "PNG",
+      "source": "user_provided_runtime_asset"
+    },
+    "ui_practice_task": {
+      "title": "Практический совет",
+      "purpose": "Практическое задание, готовая фраза, упражнение для родителя.",
+      "runtime": true,
+      "allowed_roles": [
+        "advice",
+        "practice",
+        "home_exercise"
+      ],
+      "alt": "Лист с изображением мозга, карандашом и отметкой выполнения.",
+      "path": "assets/runtime/ui_practice_task.png",
+      "kind": "runtime_photo",
+      "sha256": "a63b98a544693102d957b0670c0a318e0d6149f00dd5d5db9ff9b13467326461",
+      "file_size_bytes": 2468037,
+      "width_px": 1254,
+      "height_px": 1254,
+      "format": "PNG",
+      "source": "user_provided_runtime_asset"
+    },
+    "ui_location": {
+      "title": "Местоположение",
+      "purpose": "Раздел записи, адрес площадки или будущий блок филиалов.",
+      "runtime": true,
+      "allowed_roles": [
+        "location",
+        "booking_location"
+      ],
+      "alt": "Значок геолокации на фирменном спортивном фоне.",
+      "path": "assets/runtime/ui_location.png",
+      "kind": "runtime_photo",
+      "sha256": "90f74ac8f935e75758e6b8dbb4a6bc0cf69ff2afef4f677e91bf508de9d4c989",
+      "file_size_bytes": 2652759,
+      "width_px": 1254,
+      "height_px": 1254,
+      "format": "PNG",
+      "source": "user_provided_runtime_asset"
+    },
+    "ui_insight": {
+      "title": "Главная мысль",
+      "purpose": "Общий вывод ситуации и ключевой смысл.",
+      "runtime": true,
+      "allowed_roles": [
+        "summary",
+        "key_idea"
+      ],
+      "alt": "Лампочка с мозгом в фирменной бело-жёлтой графике.",
+      "path": "assets/runtime/ui_insight.png",
+      "kind": "runtime_photo",
+      "sha256": "5845d1effb5fe25eb1f82640600b1b7edb87b442a33a5ee7f34a423f49c29bab",
+      "file_size_bytes": 2298857,
+      "width_px": 1254,
+      "height_px": 1254,
+      "format": "PNG",
+      "source": "user_provided_runtime_asset"
+    },
+    "ui_neural_focus": {
+      "title": "Фокус и ментальный инструмент",
+      "purpose": "Ритуал переключения, концентрация, нейронный инструмент.",
+      "runtime": true,
+      "allowed_roles": [
+        "focus_tool",
+        "switching_ritual",
+        "mental_skill"
+      ],
+      "alt": "Половина мозга с расходящимися нейронными линиями.",
+      "path": "assets/runtime/ui_neural_focus.png",
+      "kind": "runtime_photo",
+      "sha256": "eeae1790db3dcda90c9330a35595988eead19fddbba430842f19dc6bb42c7f92",
+      "file_size_bytes": 2467798,
+      "width_px": 1254,
+      "height_px": 1254,
+      "format": "PNG",
+      "source": "user_provided_runtime_asset"
+    },
+    "ui_rating": {
+      "title": "Итоговая обратная связь",
+      "purpose": "Словесный итог модуля без процентов и диагностических ярлыков.",
+      "runtime": true,
+      "allowed_roles": [
+        "module_feedback",
+        "reflection"
+      ],
+      "alt": "Три звезды, центральная звезда выделена жёлтым.",
+      "path": "assets/runtime/ui_rating.png",
+      "kind": "runtime_photo",
+      "sha256": "212f3a23e0c0db0ca541adba28f1039b8ad7f1f7d756154744b34ad983047929",
+      "file_size_bytes": 2622503,
+      "width_px": 1254,
+      "height_px": 1254,
+      "format": "PNG",
+      "source": "user_provided_runtime_asset"
+    },
+    "ui_calendar": {
+      "title": "Практика до следующей игры",
+      "purpose": "Домашнее упражнение, напоминание или план применения совета.",
+      "runtime": true,
+      "allowed_roles": [
+        "home_exercise",
+        "reminder",
+        "practice_plan"
+      ],
+      "alt": "Календарь с жёлтой отметкой выполнения.",
+      "path": "assets/runtime/ui_calendar.png",
+      "kind": "runtime_photo",
+      "sha256": "03226afdae65857687eea99a6d840185c7aa4e1aed70e67b4bd060a2af294438",
+      "file_size_bytes": 2038502,
+      "width_px": 1254,
+      "height_px": 1254,
+      "format": "PNG",
+      "source": "user_provided_runtime_asset"
+    },
+    "ui_tool_cards": {
+      "title": "Библиотека инструментов",
+      "purpose": "Главное меню практических материалов и карточек.",
+      "runtime": true,
+      "allowed_roles": [
+        "tools_library",
+        "main_menu_tools"
+      ],
+      "alt": "Набор карточек с фирменным знаком мозга Mental Skills.",
+      "path": "assets/runtime/ui_tool_cards.png",
+      "kind": "runtime_photo",
+      "sha256": "b66f3e7cbecedf484ba83415269440f2689ae219213a12d30ac8ad4b387b7a19",
+      "file_size_bytes": 1954890,
+      "width_px": 1254,
+      "height_px": 1254,
+      "format": "PNG",
+      "source": "user_provided_runtime_asset"
+    },
+    "brand_logo_horizontal": {
+      "title": "Горизонтальный логотип",
+      "purpose": "Стартовый экран, раздел «О проекте», нейтральная бренд-заставка.",
+      "runtime": true,
+      "allowed_roles": [
+        "bot_start",
+        "about_project",
+        "fallback_brand"
+      ],
+      "alt": "Горизонтальный логотип Mental Skills на чёрном фоне.",
+      "path": "assets/runtime/brand_logo_horizontal.png",
+      "kind": "runtime_photo",
+      "sha256": "449bb9fc0a65ee624d0e5661d02ace8880ef3829c5235851668f629095a32e74",
+      "file_size_bytes": 964097,
+      "width_px": 1448,
+      "height_px": 1086,
+      "format": "PNG",
+      "source": "latest_user_upload"
+    },
+    "runtime_assets_contact_sheet": {
+      "title": "Карта runtime-ассетов",
+      "purpose": "Быстрый визуальный обзор карточек и их asset_id для разработчика.",
+      "runtime": false,
+      "allowed_roles": [
+        "design_reference"
+      ],
+      "alt": "Контактный лист фирменных карточек Mental Skills с идентификаторами ассетов.",
+      "path": "assets/reference/runtime_assets_contact_sheet.png",
+      "kind": "design_reference",
+      "sha256": "27f332b4765932b46de9c274762a5e326bd4b95b01c042b2f245d01e7bb600fc",
+      "file_size_bytes": 1246055,
+      "width_px": 720,
+      "height_px": 2120,
+      "format": "PNG",
+      "source": "generated_from_user_provided_runtime_assets"
+    }
+  },
+  "brand_tokens": "assets/brand_tokens.json",
+  "visual_usage_map": "assets/visual_usage_map.json",
+  "source_reference_order": [
+    "brand_illustration_style",
+    "brand_graphic_elements",
+    "brand_logo_horizontal"
+  ]
+}

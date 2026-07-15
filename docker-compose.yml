@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: mental_skills
+      POSTGRES_USER: mental
+      POSTGRES_PASSWORD: mental
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mental -d mental_skills"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  bot:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head && python -m app.main"
+
+volumes:
+  postgres_data:
+

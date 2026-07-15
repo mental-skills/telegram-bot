@@ -1,0 +1,67 @@
+{
+  "tokens_version": "1.0",
+  "brand": "Mental Skills",
+  "source_references": [
+    "assets/reference/brand_illustration_style.png",
+    "assets/reference/brand_graphic_elements.png",
+    "assets/runtime/brand_logo_horizontal.png"
+  ],
+  "palette": {
+    "background_black": "#050505",
+    "background_graphite": "#111111",
+    "surface_graphite": "#181818",
+    "border_graphite": "#333333",
+    "brand_yellow": "#FFC400",
+    "brand_yellow_warm": "#F8B800",
+    "text_primary": "#F5F5F5",
+    "text_secondary": "#B8B8B8",
+    "neural_blue": "#1599F5",
+    "neural_blue_deep": "#0D4FCC",
+    "neural_green": "#00B85A",
+    "neural_orange": "#FF9500",
+    "neural_red": "#F21F35"
+  },
+  "usage_rules": {
+    "yellow": "Основной CTA, заголовок, активный контур и смысловой акцент.",
+    "white": "Основной текст, крупные пиктограммы и контрастные линии.",
+    "neural_colors": "Только точечно: логотип, нейронные связи, редкие смысловые маркеры.",
+    "black_graphite": "Основной фон и поверхности; избегать светлого интерфейса в MVP."
+  },
+  "composition": {
+    "contrast": "Высокий контраст, много свободного чёрного пространства.",
+    "lines": "Тонкие нейронные/технологические линии, диагонали, траектории движения.",
+    "frames": "Тонкие жёлтые или белые рамки; допустимы срезанные углы.",
+    "glow": "Сдержанное жёлтое свечение только вокруг ключевого элемента.",
+    "imagery": "Премиальный спортивный реализм, естественные пропорции, действие и концентрация.",
+    "avoid": [
+      "избыточно детский мультяшный стиль",
+      "визуальный шум",
+      "многоцветные фоны",
+      "случайные стоковые изображения",
+      "искажённые пропорции людей",
+      "динамический текст, запечённый в runtime-картинку"
+    ]
+  },
+  "telegram": {
+    "message_text_is_primary": true,
+    "system_buttons_not_recolorable": true,
+    "image_frequency": "Одна карточка на смысловой этап, не на каждое сообщение.",
+    "fallback": "Любой экран должен быть полностью понятен без изображения.",
+    "caption_strategy": "Если текст длинный — фото отдельным сообщением, затем текст и кнопки."
+  },
+  "future_mini_app": {
+    "font_stack": "Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif",
+    "heading_style": "Плотный полужирный гротеск, допускается узкое начертание.",
+    "radius_px": 6,
+    "border_px": 1,
+    "spacing_scale_px": [
+      4,
+      8,
+      12,
+      16,
+      24,
+      32,
+      48
+    ]
+  }
+}

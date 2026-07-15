@@ -1,0 +1,413 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mentalskills.expert/schemas/scenario.schema.json",
+  "title": "Mental Skills educational trainer scenario",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scenario"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.2"
+    },
+    "scenario": {
+      "type": "object",
+      "required": [
+        "id",
+        "content_version",
+        "sport",
+        "language",
+        "title",
+        "stage",
+        "age_groups",
+        "entry_node",
+        "nodes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z0-9_]+$"
+        },
+        "content_version": {
+          "type": "string"
+        },
+        "sport": {
+          "type": "string",
+          "const": "football"
+        },
+        "language": {
+          "type": "string",
+          "const": "ru"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stage": {
+          "type": "string",
+          "enum": [
+            "before_match",
+            "during_match",
+            "after_match"
+          ]
+        },
+        "estimated_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30
+        },
+        "age_groups": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "6-8",
+              "9-12",
+              "13-16"
+            ]
+          },
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "entry_node": {
+          "type": "string"
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "internal_name"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "internal_name": {
+                "type": "string"
+              },
+              "user_visible": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "nodes": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "asset_manifest": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "ageText": {
+      "type": "object",
+      "required": [
+        "6-8",
+        "9-12",
+        "13-16"
+      ],
+      "properties": {
+        "6-8": {
+          "type": "string",
+          "minLength": 1
+        },
+        "9-12": {
+          "type": "string",
+          "minLength": 1
+        },
+        "13-16": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "button": {
+      "type": "object",
+      "required": [
+        "id",
+        "label",
+        "next"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$",
+          "maxLength": 32
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "next": {
+          "type": "string"
+        },
+        "tracking_code": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "assessment": {
+      "type": "object",
+      "required": [
+        "dimension_scores",
+        "signals"
+      ],
+      "properties": {
+        "dimension_scores": {
+          "type": "object",
+          "required": [
+            "emotional_contact",
+            "autonomy_support",
+            "directive_intervention",
+            "adult_reactivity",
+            "result_dominance"
+          ],
+          "properties": {
+            "emotional_contact": {
+              "type": "integer",
+              "minimum": -3,
+              "maximum": 3
+            },
+            "autonomy_support": {
+              "type": "integer",
+              "minimum": -3,
+              "maximum": 3
+            },
+            "directive_intervention": {
+              "type": "integer",
+              "minimum": -3,
+              "maximum": 3
+            },
+            "adult_reactivity": {
+              "type": "integer",
+              "minimum": -3,
+              "maximum": 3
+            },
+            "result_dominance": {
+              "type": "integer",
+              "minimum": -3,
+              "maximum": 3
+            }
+          },
+          "additionalProperties": false
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "weight"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9_]+$"
+              },
+              "weight": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "technical_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "node": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "info",
+            "choice",
+            "outcome",
+            "advice",
+            "tool",
+            "completion",
+            "emergency"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "text_by_age": {
+          "$ref": "#/$defs/ageText"
+        },
+        "quote": {
+          "type": "string"
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/button"
+          },
+          "minItems": 1,
+          "maxItems": 6
+        },
+        "next": {
+          "type": "string"
+        },
+        "assessment": {
+          "$ref": "#/$defs/assessment"
+        },
+        "methodology": {
+          "type": "object",
+          "properties": {
+            "parent_intent": {
+              "type": "string"
+            },
+            "age_notes": {
+              "$ref": "#/$defs/ageText"
+            },
+            "editor_note": {
+              "type": "string"
+            },
+            "safety_note": {
+              "type": "string"
+            },
+            "full_explanation": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "media": {
+          "$ref": "#/$defs/media"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "choice"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "buttons"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "info",
+                  "outcome",
+                  "advice",
+                  "tool",
+                  "emergency"
+                ]
+              }
+            }
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "text"
+                ]
+              },
+              {
+                "required": [
+                  "text_by_age"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "completion"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "text",
+              "buttons"
+            ]
+          }
+        }
+      ]
+    },
+    "media": {
+      "type": "object",
+      "required": [
+        "asset_id"
+      ],
+      "properties": {
+        "asset_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "photo"
+          ],
+          "default": "photo"
+        },
+        "show_once_per_session": {
+          "type": "boolean"
+        },
+        "presentation": {
+          "type": "string",
+          "enum": [
+            "hero",
+            "card",
+            "compact"
+          ]
+        },
+        "caption_strategy": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "caption",
+            "separate_message"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

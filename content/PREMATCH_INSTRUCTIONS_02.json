@@ -1,0 +1,779 @@
+{
+  "schema_version": "1.2",
+  "scenario": {
+    "id": "PREMATCH_INSTRUCTIONS_02",
+    "content_version": "2026-07-15.3-brand-v2",
+    "sport": "football",
+    "language": "ru",
+    "title": "Последние инструкции перед стартом",
+    "stage": "before_match",
+    "estimated_minutes": 5,
+    "age_groups": [
+      "6-8",
+      "9-12",
+      "13-16"
+    ],
+    "entry_node": "intro",
+    "dimensions": [
+      {
+        "id": "emotional_contact",
+        "internal_name": "Эмоциональный контакт",
+        "user_visible": false
+      },
+      {
+        "id": "autonomy_support",
+        "internal_name": "Поддержка самостоятельности",
+        "user_visible": false
+      },
+      {
+        "id": "directive_intervention",
+        "internal_name": "Директивное вмешательство",
+        "user_visible": false
+      },
+      {
+        "id": "adult_reactivity",
+        "internal_name": "Эмоциональная реактивность взрослого",
+        "user_visible": false
+      },
+      {
+        "id": "result_dominance",
+        "internal_name": "Доминирование результата",
+        "user_visible": false
+      }
+    ],
+    "nodes": {
+      "intro": {
+        "type": "info",
+        "title": "Ситуация 2 из 7. Последние инструкции перед стартом",
+        "text": "До начала матча остаётся три минуты. Ребёнок подходит попить воды. У вас есть около двадцати секунд, прежде чем тренер снова позовёт команду.",
+        "next": "start_choice",
+        "methodology": {
+          "parent_intent": "Познакомить пользователя с ситуацией без оценки его будущего выбора.",
+          "age_notes": {
+            "6-8": "Оставить одну короткую вводную фразу.",
+            "9-12": "Можно упомянуть, что ребёнок уже получил задачу тренера.",
+            "13-16": "Использовать уважительную формулировку без уменьшительных слов."
+          },
+          "editor_note": "Пользовательский экран должен помещаться в одно сообщение Telegram."
+        },
+        "media": {
+          "asset_id": "ui_dialogue_choice",
+          "mode": "photo",
+          "show_once_per_session": false,
+          "presentation": "hero",
+          "caption_strategy": "auto"
+        }
+      },
+      "start_choice": {
+        "type": "choice",
+        "text_by_age": {
+          "6-8": "Ребёнок быстро пьёт воду и смотрит на поле. Что вы скажете перед стартом?",
+          "9-12": "Ребёнок уже получил задачу тренера и подошёл к вам на несколько секунд. Что вы скажете?",
+          "13-16": "Подросток готовится вернуться к команде после короткой паузы. Что вы скажете перед стартом?"
+        },
+        "buttons": [
+          {
+            "id": "a",
+            "label": "Дам игровые инструкции",
+            "next": "a_intent",
+            "tracking_code": "S02_A"
+          },
+          {
+            "id": "b",
+            "label": "Напомню, как важно победить",
+            "next": "b_intent",
+            "tracking_code": "S02_B"
+          },
+          {
+            "id": "c",
+            "label": "Спрошу о задаче тренера",
+            "next": "c_intent",
+            "tracking_code": "S02_C"
+          },
+          {
+            "id": "d",
+            "label": "Пожелаю хорошей игры",
+            "next": "d_intent",
+            "tracking_code": "S02_D"
+          }
+        ]
+      },
+      "a_intent": {
+        "type": "info",
+        "title": "В основе выбора",
+        "text": "Вы хотите помочь ребёнку лучше подготовиться и предупредить возможные ошибки. Но перед стартом новая информация может конкурировать с задачей тренера.",
+        "next": "a_choice",
+        "methodology": {
+          "parent_intent": "Помочь ребёнку сыграть лучше через конкретные подсказки.",
+          "full_explanation": "Родитель может видеть свободные зоны, ошибки в расположении или особенности соперника, однако последние секунды перед стартом создают высокий риск информационной перегрузки."
+        }
+      },
+      "a_choice": {
+        "type": "choice",
+        "text": "Вы даёте несколько советов. Ребёнок отвечает: «Тренер сказал мне играть по-другому». Что вы скажете?",
+        "buttons": [
+          {
+            "id": "a1",
+            "label": "Делай, как говорю",
+            "next": "a1_outcome",
+            "tracking_code": "S02_A1"
+          },
+          {
+            "id": "a2",
+            "label": "Что сказал тренер?",
+            "next": "a2_outcome",
+            "tracking_code": "S02_A2"
+          },
+          {
+            "id": "a3",
+            "label": "Забудь мои советы",
+            "next": "a3_outcome",
+            "tracking_code": "S02_A3"
+          }
+        ]
+      },
+      "a1_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "У ребёнка появляются две системы указаний. Он может медленнее принимать решения и чаще проверять реакцию взрослых.",
+        "next": "a1_advice"
+      },
+      "a1_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text": "Не ставьте ребёнка между родителем и тренером. Если вы не согласны с задачей, обсудите это с тренером после матча.",
+        "quote": "Выполняй задачу тренера.",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": -1,
+            "autonomy_support": -3,
+            "directive_intervention": 3,
+            "adult_reactivity": 2,
+            "result_dominance": 2
+          },
+          "signals": [
+            {
+              "id": "conflicting_instructions",
+              "weight": 3
+            },
+            {
+              "id": "directive_intervention",
+              "weight": 3
+            },
+            {
+              "id": "adult_reactivity",
+              "weight": 2
+            }
+          ],
+          "technical_tags": [
+            "CONFLICTING_INSTRUCTIONS"
+          ]
+        }
+      },
+      "a2_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "Ребёнок формулирует задачу своими словами. Это помогает выделить главное и заметить возможное противоречие с вашими советами.",
+        "next": "a2_advice"
+      },
+      "a2_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text": "Спрашивайте с интересом, а не как на экзамене. После ответа не добавляйте новую тактическую лекцию.",
+        "quote": "Какую задачу тебе дал тренер?",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": 1,
+            "autonomy_support": 2,
+            "directive_intervention": 0,
+            "adult_reactivity": 0,
+            "result_dominance": 0
+          },
+          "signals": [
+            {
+              "id": "coach_task_clarity",
+              "weight": 3
+            },
+            {
+              "id": "autonomy_support",
+              "weight": 2
+            }
+          ],
+          "technical_tags": [
+            "COACH_TASK_RECALL"
+          ]
+        }
+      },
+      "a3_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "Вы корректируете вмешательство. Ребёнку больше не нужно выбирать между двумя взрослыми.",
+        "next": "a3_advice"
+      },
+      "a3_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text": "После отмены советов придерживайтесь границы и не продолжайте подсказывать с трибуны.",
+        "quote": "Я дал лишние советы. Слушай тренера.",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": 1,
+            "autonomy_support": 2,
+            "directive_intervention": -1,
+            "adult_reactivity": -1,
+            "result_dominance": 0
+          },
+          "signals": [
+            {
+              "id": "role_boundaries",
+              "weight": 3
+            },
+            {
+              "id": "parent_self_correction",
+              "weight": 2
+            },
+            {
+              "id": "autonomy_support",
+              "weight": 2
+            }
+          ],
+          "technical_tags": [
+            "ROLE_CORRECTION"
+          ]
+        }
+      },
+      "b_intent": {
+        "type": "info",
+        "title": "В основе выбора",
+        "text": "Вы хотите подчеркнуть важность матча и помочь ребёнку собраться. Но результат не находится под контролем одного игрока.",
+        "next": "b_choice",
+        "methodology": {
+          "parent_intent": "Мобилизовать ребёнка через значимость результата.",
+          "full_explanation": "Напоминание о победе может повысить кратковременную мобилизацию, но также увеличивает психологическую цену ошибки."
+        }
+      },
+      "b_choice": {
+        "type": "choice",
+        "text": "Вы говорите: «Сегодня очень важно победить». Ребёнок спрашивает: «А если мы проиграем?» Что вы ответите?",
+        "buttons": [
+          {
+            "id": "b1",
+            "label": "Сегодня нельзя проигрывать",
+            "next": "b1_outcome",
+            "tracking_code": "S02_B1"
+          },
+          {
+            "id": "b2",
+            "label": "Главное — отдай все силы",
+            "next": "b2_outcome",
+            "tracking_code": "S02_B2"
+          },
+          {
+            "id": "b3",
+            "label": "Ты не контролируешь весь результат",
+            "next": "b3_outcome",
+            "tracking_code": "S02_B3"
+          }
+        ]
+      },
+      "b1_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "Психологическая цена ошибки растёт. Ребёнок может играть осторожнее, избегать инициативы и сильнее бояться важных матчей.",
+        "next": "b1_advice"
+      },
+      "b1_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text": "Замените задачу результата на действие, которым ребёнок действительно может управлять.",
+        "quote": "Что сегодня зависит от тебя?",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": -2,
+            "autonomy_support": -1,
+            "directive_intervention": 2,
+            "adult_reactivity": 2,
+            "result_dominance": 3
+          },
+          "signals": [
+            {
+              "id": "result_pressure",
+              "weight": 3
+            },
+            {
+              "id": "adult_reactivity",
+              "weight": 2
+            },
+            {
+              "id": "directive_intervention",
+              "weight": 2
+            }
+          ],
+          "technical_tags": [
+            "RESULT_PRESSURE"
+          ]
+        }
+      },
+      "b2_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "Призыв «отдать все силы» остаётся расплывчатым. Ребёнок может чувствовать, что его старания всегда можно признать недостаточными.",
+        "next": "b2_advice"
+      },
+      "b2_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text": "Назовите конкретное наблюдаемое действие вместо общей оценки старания.",
+        "quote": "Выбери одно действие, которое будешь выполнять весь матч.",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": 0,
+            "autonomy_support": 0,
+            "directive_intervention": 1,
+            "adult_reactivity": 1,
+            "result_dominance": 1
+          },
+          "signals": [
+            {
+              "id": "vague_effort_pressure",
+              "weight": 2
+            },
+            {
+              "id": "directive_intervention",
+              "weight": 1
+            }
+          ],
+          "technical_tags": [
+            "EFFORT_PRESSURE"
+          ]
+        }
+      },
+      "b3_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "Ребёнку становится понятнее, на какие действия он может повлиять. Это снижает чрезмерную личную ответственность за общий счёт.",
+        "next": "b3_advice"
+      },
+      "b3_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text": "Не говорите, что результат неважен. Признайте его значение и отделите от личной зоны контроля.",
+        "quote": "Результат важен, но не зависит только от тебя.",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": 2,
+            "autonomy_support": 2,
+            "directive_intervention": -1,
+            "adult_reactivity": -1,
+            "result_dominance": -2
+          },
+          "signals": [
+            {
+              "id": "controllable_actions",
+              "weight": 3
+            },
+            {
+              "id": "result_balance",
+              "weight": 3
+            },
+            {
+              "id": "autonomy_support",
+              "weight": 2
+            }
+          ],
+          "technical_tags": [
+            "CONTROLLABLE_ACTIONS"
+          ]
+        }
+      },
+      "c_intent": {
+        "type": "info",
+        "title": "В основе выбора",
+        "text": "Вы не добавляете новую инструкцию, а помогаете ребёнку вспомнить задачу тренера и выделить главное.",
+        "next": "c_choice",
+        "methodology": {
+          "parent_intent": "Поддержать ясность задачи без новой тактики.",
+          "full_explanation": "Вопрос помогает проверить понимание, но не должен превращаться в экзамен на внимательность."
+        }
+      },
+      "c_choice": {
+        "type": "choice",
+        "text": "Ребёнок отвечает: «Не помню точно. Вроде нужно быстрее играть после получения мяча». Что вы сделаете?",
+        "buttons": [
+          {
+            "id": "c1",
+            "label": "Как можно было не запомнить?",
+            "next": "c1_outcome",
+            "tracking_code": "S02_C1"
+          },
+          {
+            "id": "c2",
+            "label": "Сам восстановлю задачу",
+            "next": "c2_outcome",
+            "tracking_code": "S02_C2"
+          },
+          {
+            "id": "c3",
+            "label": "Предложу уточнить у тренера",
+            "next": "c3_outcome",
+            "tracking_code": "S02_C3"
+          }
+        ]
+      },
+      "c1_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "Уточнение превращается в оценку внимательности. Ребёнок может начать скрывать, что не понял задание.",
+        "next": "c1_advice"
+      },
+      "c1_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text": "Сначала восстановите ясность задачи. Внимательность лучше обсуждать после соревнования.",
+        "quote": "Если не уверен, лучше уточни у тренера.",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": -2,
+            "autonomy_support": -1,
+            "directive_intervention": 2,
+            "adult_reactivity": 1,
+            "result_dominance": 1
+          },
+          "signals": [
+            {
+              "id": "attention_shaming",
+              "weight": 3
+            },
+            {
+              "id": "directive_intervention",
+              "weight": 2
+            }
+          ],
+          "technical_tags": [
+            "ATTENTION_SHAMING"
+          ]
+        }
+      },
+      "c2_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "Вы можете неточно восстановить слова тренера и снова стать источником второй инструкции.",
+        "next": "c2_advice"
+      },
+      "c2_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text": "Не угадывайте за тренера. Помогите ребёнку назвать то, что он помнит, а остальное предложите уточнить.",
+        "quote": "Ты помнишь часть. Остальное лучше уточнить.",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": 1,
+            "autonomy_support": -1,
+            "directive_intervention": 1,
+            "adult_reactivity": 1,
+            "result_dominance": 0
+          },
+          "signals": [
+            {
+              "id": "parent_interpretation",
+              "weight": 2
+            },
+            {
+              "id": "directive_intervention",
+              "weight": 1
+            }
+          ],
+          "technical_tags": [
+            "PARENT_INTERPRETATION"
+          ]
+        }
+      },
+      "c3_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "Ребёнок обращается к источнику задания и получает точную информацию. Это может стать тренировкой прямого вопроса.",
+        "next": "c3_advice"
+      },
+      "c3_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text_by_age": {
+          "6-8": "Подойдите вместе, но предложите ребёнку произнести первую короткую фразу.",
+          "9-12": "Помогите подготовить вопрос, а обратиться к тренеру предложите ребёнку самому.",
+          "13-16": "Предложите подростку уточнить задачу самостоятельно, не вмешиваясь без запроса."
+        },
+        "quote": "Спроси тренера ещё раз — это нормально.",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": 2,
+            "autonomy_support": 3,
+            "directive_intervention": -1,
+            "adult_reactivity": -1,
+            "result_dominance": 0
+          },
+          "signals": [
+            {
+              "id": "coach_clarification",
+              "weight": 3
+            },
+            {
+              "id": "autonomy_support",
+              "weight": 3
+            },
+            {
+              "id": "role_boundaries",
+              "weight": 2
+            }
+          ],
+          "technical_tags": [
+            "COACH_CLARIFICATION"
+          ]
+        }
+      },
+      "d_intent": {
+        "type": "info",
+        "title": "В основе выбора",
+        "text": "Вы не хотите перегружать ребёнка и выбираете поддержку без тактических указаний.",
+        "next": "d_choice",
+        "methodology": {
+          "parent_intent": "Дать эмоциональную опору и сохранить самостоятельность.",
+          "full_explanation": "Отказ от тактики не должен звучать как эмоциональное отстранение."
+        }
+      },
+      "d_choice": {
+        "type": "choice",
+        "text": "Ребёнок удивляется: «А ты ничего мне не посоветуешь?» Что вы ответите?",
+        "buttons": [
+          {
+            "id": "d1",
+            "label": "Дам один короткий совет",
+            "next": "d1_outcome",
+            "tracking_code": "S02_D1"
+          },
+          {
+            "id": "d2",
+            "label": "Как ты сам видишь игру?",
+            "next": "d2_outcome",
+            "tracking_code": "S02_D2"
+          },
+          {
+            "id": "d3",
+            "label": "Тактику оставим тренеру",
+            "next": "d3_outcome",
+            "tracking_code": "S02_D3"
+          }
+        ]
+      },
+      "d1_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "Перегрузка меньше, но родитель остаётся источником последней обязательной подсказки.",
+        "next": "d1_advice"
+      },
+      "d1_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text": "Уточните, что именно нужно ребёнку: тактическая идея, помощь с волнением или подтверждение вашей поддержки.",
+        "quote": "Тебе сейчас нужна подсказка или поддержка?",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": 1,
+            "autonomy_support": 0,
+            "directive_intervention": 1,
+            "adult_reactivity": 0,
+            "result_dominance": 0
+          },
+          "signals": [
+            {
+              "id": "parent_tip_dependency",
+              "weight": 2
+            },
+            {
+              "id": "emotional_contact",
+              "weight": 1
+            }
+          ],
+          "technical_tags": [
+            "ONE_PARENT_TIP"
+          ]
+        }
+      },
+      "d2_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "Ребёнок формулирует собственный ориентир. Это поддерживает анализ и ответственность за решение.",
+        "next": "d2_advice"
+      },
+      "d2_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text": "Не исправляйте ответ немедленно. Сначала спросите, почему ребёнок выбрал именно эту задачу.",
+        "quote": "На чём тебе сегодня важно сосредоточиться?",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": 2,
+            "autonomy_support": 3,
+            "directive_intervention": -2,
+            "adult_reactivity": -1,
+            "result_dominance": -1
+          },
+          "signals": [
+            {
+              "id": "self_analysis",
+              "weight": 3
+            },
+            {
+              "id": "autonomy_support",
+              "weight": 3
+            },
+            {
+              "id": "emotional_contact",
+              "weight": 2
+            }
+          ],
+          "technical_tags": [
+            "CHILD_SELF_ANALYSIS"
+          ]
+        }
+      },
+      "d3_outcome": {
+        "type": "outcome",
+        "title": "Что может произойти",
+        "text": "Роль родителя становится ясной: тренер даёт футбольную задачу, а родитель остаётся эмоциональной опорой.",
+        "next": "d3_advice"
+      },
+      "d3_advice": {
+        "type": "advice",
+        "title": "Практический совет",
+        "text": "Добавьте сообщение о доверии, чтобы граница ролей не прозвучала как безразличие.",
+        "quote": "Игровую задачу дал тренер. Я буду тебя поддерживать.",
+        "next": "summary_main",
+        "assessment": {
+          "dimension_scores": {
+            "emotional_contact": 3,
+            "autonomy_support": 3,
+            "directive_intervention": -2,
+            "adult_reactivity": -2,
+            "result_dominance": -1
+          },
+          "signals": [
+            {
+              "id": "role_boundaries",
+              "weight": 3
+            },
+            {
+              "id": "emotional_contact",
+              "weight": 3
+            },
+            {
+              "id": "autonomy_support",
+              "weight": 3
+            }
+          ],
+          "technical_tags": [
+            "ROLE_BOUNDARIES_SUPPORT"
+          ]
+        }
+      },
+      "summary_main": {
+        "type": "info",
+        "title": "Главная мысль",
+        "text": "Чем ближе старт, тем короче слова родителя. Ребёнку важнее ясная задача, отсутствие второй установки и спокойное сообщение о поддержке.",
+        "next": "tool_one_question",
+        "media": {
+          "asset_id": "ui_insight",
+          "mode": "photo",
+          "show_once_per_session": false,
+          "presentation": "card",
+          "caption_strategy": "auto"
+        }
+      },
+      "tool_one_question": {
+        "type": "tool",
+        "title": "Один вопрос — одна фраза",
+        "text": "Спросите: «Какую задачу тебе дал тренер?» После ответа скажите: «Хорошо. Сосредоточься на ней. Я буду тебя поддерживать».",
+        "next": "tool_ritual",
+        "media": {
+          "asset_id": "ui_practice_task",
+          "mode": "photo",
+          "show_once_per_session": false,
+          "presentation": "card",
+          "caption_strategy": "auto"
+        }
+      },
+      "tool_ritual": {
+        "type": "tool",
+        "title": "Ритуал переключения",
+        "text": "Придумайте вместе короткое безопасное действие, которое помогает заметить посторонние мысли и вернуть внимание к первому эпизоду. Например: выдох, касание линии или лёгкое движение пальцами у уха, будто заводишь пружину.",
+        "next": "tool_ritual_rules",
+        "media": {
+          "asset_id": "ui_neural_focus",
+          "mode": "photo",
+          "show_once_per_session": false,
+          "presentation": "card",
+          "caption_strategy": "auto"
+        }
+      },
+      "tool_ritual_rules": {
+        "type": "tool",
+        "title": "Как использовать ритуал",
+        "text": "Ритуал не убирает мысли и не гарантирует хорошую игру. Он не является обязательной приметой и может меняться. После него не добавляйте новые инструкции.",
+        "quote": "Пружина заведена. Первый эпизод.",
+        "next": "home_exercise"
+      },
+      "home_exercise": {
+        "type": "tool",
+        "title": "Практика для родителя",
+        "text": "На следующей игре не давайте футбольных подсказок перед стартом и с трибуны. Предложите ритуал, задайте один вопрос о задаче тренера и наблюдайте, как ребёнок действует без второй установки.",
+        "next": "completion",
+        "media": {
+          "asset_id": "ui_calendar",
+          "mode": "photo",
+          "show_once_per_session": false,
+          "presentation": "card",
+          "caption_strategy": "auto"
+        }
+      },
+      "completion": {
+        "type": "completion",
+        "text": "Ситуация завершена. Ваш выбор сохранён как часть образовательного тренажёра. Он не является психологической диагностикой и будет использован только для словесной обратной связи по итогам семи ситуаций.",
+        "buttons": [
+          {
+            "id": "next",
+            "label": "Перейти к ситуации 3",
+            "next": "__NEXT_SCENARIO__"
+          },
+          {
+            "id": "repeat",
+            "label": "Повторить ситуацию",
+            "next": "intro"
+          },
+          {
+            "id": "menu",
+            "label": "Главное меню",
+            "next": "__MAIN_MENU__"
+          }
+        ],
+        "media": {
+          "asset_id": "ui_achievement",
+          "mode": "photo",
+          "show_once_per_session": false,
+          "presentation": "card",
+          "caption_strategy": "auto"
+        }
+      }
+    },
+    "asset_manifest": "assets/asset_manifest.json"
+  }
+}

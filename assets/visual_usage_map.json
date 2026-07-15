@@ -1,0 +1,55 @@
+{
+  "map_version": "1.0",
+  "rules": {
+    "max_one_image_per_stage": true,
+    "do_not_send_design_references": true,
+    "do_not_embed_dynamic_text": true,
+    "always_support_text_only": true
+  },
+  "screen_roles": {
+    "bot_start": {
+      "asset_id": "brand_logo_horizontal",
+      "presentation": "hero"
+    },
+    "scenario_intro": {
+      "asset_id": "ui_dialogue_choice",
+      "presentation": "card"
+    },
+    "key_idea": {
+      "asset_id": "ui_insight",
+      "presentation": "card"
+    },
+    "practice_tool": {
+      "asset_id": "ui_practice_task",
+      "presentation": "card"
+    },
+    "switching_ritual": {
+      "asset_id": "ui_neural_focus",
+      "presentation": "card"
+    },
+    "home_exercise": {
+      "asset_id": "ui_calendar",
+      "presentation": "card"
+    },
+    "scenario_completion": {
+      "asset_id": "ui_achievement",
+      "presentation": "card"
+    },
+    "module_feedback": {
+      "asset_id": "ui_rating",
+      "presentation": "card"
+    },
+    "tools_library": {
+      "asset_id": "ui_tool_cards",
+      "presentation": "hero"
+    },
+    "location_booking": {
+      "asset_id": "ui_location",
+      "presentation": "card"
+    },
+    "faq": {
+      "asset_id": "ui_question_card",
+      "presentation": "card"
+    }
+  }
+}

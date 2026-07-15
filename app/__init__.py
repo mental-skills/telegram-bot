@@ -1,0 +1,1 @@
+"""Mental Skills bot application."""
