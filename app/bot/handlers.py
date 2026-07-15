@@ -14,22 +14,24 @@ from app.bot.keyboards import (
 )
 from app.bot.renderer import send_screen, send_start_card
 from app.content.models import UiTexts
+from app.content.registry import ScenarioRegistry
 from app.db.repositories import ProgressRepository, UserRepository
-from app.engine.engine import ScenarioEngine
-from app.services.progress import ProgressService
+from app.services.progress import STANDALONE_MODULE_ID, ProgressService
+
+STANDALONE_SCENARIO_02 = "PREMATCH_INSTRUCTIONS_02"
 
 router = Router()
 
 
 def _progress_service(
     db_session: AsyncSession,
-    engine: ScenarioEngine,
+    scenario_registry: ScenarioRegistry,
     privacy_version: str,
 ) -> ProgressService:
     return ProgressService(
         user_repository=UserRepository(db_session),
         progress_repository=ProgressRepository(db_session),
-        engine=engine,
+        registry=scenario_registry,
         privacy_version=privacy_version,
     )
 
@@ -40,10 +42,10 @@ async def start_handler(
     db_session: AsyncSession,
     asset_repository: AssetRepository,
     ui_texts: UiTexts,
-    engine: ScenarioEngine,
+    scenario_registry: ScenarioRegistry,
     privacy_version: str,
 ) -> None:
-    service = _progress_service(db_session, engine, privacy_version)
+    service = _progress_service(db_session, scenario_registry, privacy_version)
     user = await service.get_or_create_user(message.from_user.id if message.from_user else 0)
     await send_start_card(
         message=message,
@@ -73,10 +75,10 @@ async def reset_callback_handler(
     callback: CallbackQuery,
     db_session: AsyncSession,
     ui_texts: UiTexts,
-    engine: ScenarioEngine,
+    scenario_registry: ScenarioRegistry,
     privacy_version: str,
 ) -> None:
-    service = _progress_service(db_session, engine, privacy_version)
+    service = _progress_service(db_session, scenario_registry, privacy_version)
     if callback.data == "reset:yes" and callback.from_user:
         await service.reset_user_progress(callback.from_user.id)
         await callback.message.answer(ui_texts.reset_done) if callback.message else None
@@ -90,14 +92,14 @@ async def age_handler(
     callback: CallbackQuery,
     db_session: AsyncSession,
     ui_texts: UiTexts,
-    engine: ScenarioEngine,
+    scenario_registry: ScenarioRegistry,
     privacy_version: str,
 ) -> None:
     age_group = age_from_callback(callback.data or "")
     if age_group is None or callback.from_user is None:
         await callback.answer(ui_texts.generic_error, show_alert=True)
         return
-    service = _progress_service(db_session, engine, privacy_version)
+    service = _progress_service(db_session, scenario_registry, privacy_version)
     await service.set_age(callback.from_user.id, age_group)
     if isinstance(callback.message, Message):
         await callback.message.answer(
@@ -112,10 +114,10 @@ async def menu_handler(
     db_session: AsyncSession,
     asset_repository: AssetRepository,
     ui_texts: UiTexts,
-    engine: ScenarioEngine,
+    scenario_registry: ScenarioRegistry,
     privacy_version: str,
 ) -> None:
-    service = _progress_service(db_session, engine, privacy_version)
+    service = _progress_service(db_session, scenario_registry, privacy_version)
     user = await service.get_or_create_user(callback.from_user.id)
     action = (callback.data or "").removeprefix("m:")
     message = callback.message
@@ -132,6 +134,25 @@ async def menu_handler(
             await send_screen(callback, asset_repository, progress.screen, progress.trainer_session)
     elif action == "restart":
         progress = await service.restart(callback.from_user.id)
+        if progress is None:
+            await message.answer(ui_texts.age_prompt, reply_markup=age_keyboard(ui_texts))
+        else:
+            await send_screen(callback, asset_repository, progress.screen, progress.trainer_session)
+    elif action == "scenario_02":
+        progress = await service.start_or_continue_standalone(
+            callback.from_user.id,
+            STANDALONE_SCENARIO_02,
+        )
+        if progress is None:
+            await message.answer(ui_texts.age_prompt, reply_markup=age_keyboard(ui_texts))
+        else:
+            await send_screen(callback, asset_repository, progress.screen, progress.trainer_session)
+    elif action == "scenario_02_restart":
+        progress = await service.restart_scenario(
+            callback.from_user.id,
+            STANDALONE_SCENARIO_02,
+            STANDALONE_MODULE_ID,
+        )
         if progress is None:
             await message.answer(ui_texts.age_prompt, reply_markup=age_keyboard(ui_texts))
         else:
@@ -156,13 +177,13 @@ async def scenario_callback_handler(
     db_session: AsyncSession,
     asset_repository: AssetRepository,
     ui_texts: UiTexts,
-    engine: ScenarioEngine,
+    scenario_registry: ScenarioRegistry,
     privacy_version: str,
 ) -> None:
     if callback.from_user is None:
         await callback.answer(ui_texts.generic_error, show_alert=True)
         return
-    service = _progress_service(db_session, engine, privacy_version)
+    service = _progress_service(db_session, scenario_registry, privacy_version)
     try:
         result = await service.handle_callback(callback.from_user.id, callback.data or "")
     except Exception:

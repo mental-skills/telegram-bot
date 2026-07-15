@@ -48,15 +48,36 @@ class ProgressRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_active_session(self, user_id: int, scenario_id: str) -> TrainerSession | None:
+    async def get_active_session(
+        self, user_id: int, module_id: str, scenario_id: str
+    ) -> TrainerSession | None:
         result = await self.session.execute(
             select(TrainerSession)
             .where(
                 TrainerSession.user_id == user_id,
+                TrainerSession.module_id == module_id,
                 TrainerSession.scenario_id == scenario_id,
                 TrainerSession.status == SessionStatus.active.value,
             )
             .order_by(TrainerSession.started_at.desc())
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_latest_session_for_module(
+        self,
+        user_id: int,
+        module_id: str,
+        scenario_ids: tuple[str, ...],
+    ) -> TrainerSession | None:
+        result = await self.session.execute(
+            select(TrainerSession)
+            .where(
+                TrainerSession.user_id == user_id,
+                TrainerSession.module_id == module_id,
+                TrainerSession.scenario_id.in_(scenario_ids),
+            )
+            .order_by(TrainerSession.last_activity_at.desc(), TrainerSession.id.desc())
             .limit(1)
         )
         return result.scalar_one_or_none()
@@ -70,13 +91,15 @@ class ProgressRepository:
     async def create_session(
         self,
         user_id: int,
+        module_id: str,
         scenario_id: str,
         content_version: str,
         entry_node: str,
     ) -> TrainerSession:
-        attempt_no = await self._next_attempt_no(user_id, scenario_id)
+        attempt_no = await self._next_attempt_no(user_id, module_id, scenario_id)
         trainer_session = TrainerSession(
             user_id=user_id,
+            module_id=module_id,
             scenario_id=scenario_id,
             content_version=content_version,
             current_node=entry_node,
@@ -86,6 +109,33 @@ class ProgressRepository:
         await self.session.flush()
         return trainer_session
 
+    async def record_system_action(
+        self,
+        trainer_session: TrainerSession,
+        option_id: str,
+        to_node: str,
+        tracking_code: str | None,
+        assessment: dict[str, Any] | None,
+    ) -> bool:
+        event = ChoiceEvent(
+            session_id=trainer_session.id,
+            scenario_id=trainer_session.scenario_id,
+            from_node=trainer_session.current_node,
+            option_id=option_id,
+            to_node=to_node,
+            tracking_code=tracking_code,
+            assessment_json=assessment,
+        )
+        self.session.add(event)
+        try:
+            await self.session.flush()
+        except IntegrityError:
+            await self.session.rollback()
+            return False
+        trainer_session.last_activity_at = datetime.now(UTC)
+        await self.session.flush()
+        return True
+
     async def complete_session(self, trainer_session: TrainerSession) -> None:
         trainer_session.status = SessionStatus.completed.value
         trainer_session.completed_at = datetime.now(UTC)
@@ -93,12 +143,24 @@ class ProgressRepository:
         trainer_session.current_revision += 1
         await self.session.flush()
 
-    async def reset_active_sessions(self, user_id: int, scenario_id: str) -> None:
+    async def reset_active_sessions(self, user_id: int, module_id: str, scenario_id: str) -> None:
         await self.session.execute(
             update(TrainerSession)
             .where(
                 TrainerSession.user_id == user_id,
+                TrainerSession.module_id == module_id,
                 TrainerSession.scenario_id == scenario_id,
+                TrainerSession.status == SessionStatus.active.value,
+            )
+            .values(status=SessionStatus.reset.value, last_activity_at=datetime.now(UTC))
+        )
+
+    async def reset_active_sessions_for_module(self, user_id: int, module_id: str) -> None:
+        await self.session.execute(
+            update(TrainerSession)
+            .where(
+                TrainerSession.user_id == user_id,
+                TrainerSession.module_id == module_id,
                 TrainerSession.status == SessionStatus.active.value,
             )
             .values(status=SessionStatus.reset.value, last_activity_at=datetime.now(UTC))
@@ -134,10 +196,11 @@ class ProgressRepository:
         await self.session.flush()
         return True
 
-    async def _next_attempt_no(self, user_id: int, scenario_id: str) -> int:
+    async def _next_attempt_no(self, user_id: int, module_id: str, scenario_id: str) -> int:
         result = await self.session.execute(
             select(func.max(TrainerSession.attempt_no)).where(
                 TrainerSession.user_id == user_id,
+                TrainerSession.module_id == module_id,
                 TrainerSession.scenario_id == scenario_id,
             )
         )

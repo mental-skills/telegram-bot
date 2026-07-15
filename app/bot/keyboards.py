@@ -11,6 +11,12 @@ from app.services.progress import CallbackPayload
 def main_menu_keyboard(ui: UiTexts, has_age: bool) -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton(text=ui.continue_training, callback_data=menu_callback("continue"))],
+        [
+            InlineKeyboardButton(
+                text=ui.start_scenario_02,
+                callback_data=menu_callback("scenario_02"),
+            )
+        ],
         [InlineKeyboardButton(text=ui.tools, callback_data=menu_callback("tools"))],
         [InlineKeyboardButton(text=ui.about, callback_data=menu_callback("about"))],
         [InlineKeyboardButton(text=ui.privacy, callback_data=menu_callback("privacy"))],

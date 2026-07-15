@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from app.assets.repository import AssetRepository
+from app.content.registry import ScenarioRegistry
 from app.content.repository import ContentRepository
 from app.engine.engine import ScenarioEngine
 
@@ -34,7 +35,27 @@ def content_repository(asset_repository: AssetRepository) -> ContentRepository:
 
 
 @pytest.fixture()
+def scenario_registry(asset_repository: AssetRepository) -> ScenarioRegistry:
+    return ScenarioRegistry.load(
+        catalog_path=PROJECT_ROOT / "content" / "scenario_catalog.json",
+        schema_path=PROJECT_ROOT / "content" / "scenario.schema.json",
+        asset_repository=asset_repository,
+        continue_label="Продолжить",
+    )
+
+
+@pytest.fixture()
 def engine(content_repository: ContentRepository) -> ScenarioEngine:
     bundle = content_repository.load()
     ui = content_repository.get_ui_texts()
     return ScenarioEngine(bundle, continue_label=ui.continue_)
+
+
+@pytest.fixture()
+def engine_01(scenario_registry: ScenarioRegistry) -> ScenarioEngine:
+    return scenario_registry.get_engine("PREMATCH_GAME_REFUSAL_01")
+
+
+@pytest.fixture()
+def engine_02(scenario_registry: ScenarioRegistry) -> ScenarioEngine:
+    return scenario_registry.get_engine("PREMATCH_INSTRUCTIONS_02")

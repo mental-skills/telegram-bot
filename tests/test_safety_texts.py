@@ -30,7 +30,12 @@ def iter_user_strings(value: object, path: str = "") -> Iterator[str]:
 
 
 def test_no_diagnostic_percentages_or_banned_labels() -> None:
-    scenario = json.loads(Path("content/PREMATCH_INSTRUCTIONS_02.json").read_text(encoding="utf-8"))
-    texts = list(iter_user_strings(scenario))
+    texts: list[str] = []
+    for path in (
+        Path("content/PREMATCH_GAME_REFUSAL_01.json"),
+        Path("content/PREMATCH_INSTRUCTIONS_02.json"),
+    ):
+        scenario = json.loads(path.read_text(encoding="utf-8"))
+        texts.extend(iter_user_strings(scenario))
     hits = [text for text in texts if any(term in text.lower() for term in BANNED)]
     assert hits == []
