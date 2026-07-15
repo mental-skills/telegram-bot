@@ -12,6 +12,7 @@ COPY app ./app
 COPY assets ./assets
 COPY content ./content
 COPY scripts ./scripts
+COPY tests ./tests
 COPY migrations ./migrations
 COPY alembic.ini ./
 
