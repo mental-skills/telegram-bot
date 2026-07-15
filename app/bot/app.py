@@ -7,10 +7,10 @@ from aiogram.enums import ParseMode
 from app.assets.repository import AssetRepository
 from app.bot.handlers import router
 from app.bot.middleware import DbSessionMiddleware
+from app.content.registry import ScenarioRegistry
 from app.content.repository import ContentRepository
 from app.core.config import Settings
 from app.db.session import create_sessionmaker
-from app.engine.engine import ScenarioEngine
 from app.services.rate_limit import InMemoryRateLimitMiddleware
 
 
@@ -26,15 +26,19 @@ def build_dispatcher(settings: Settings) -> Dispatcher:
         ui_texts_path=settings.ui_texts_path,
         asset_repository=asset_repository,
     )
-    bundle = content_repository.load()
     ui_texts = content_repository.get_ui_texts()
-    engine = ScenarioEngine(bundle=bundle, continue_label=ui_texts.continue_)
+    registry = ScenarioRegistry.load(
+        catalog_path=settings.scenario_catalog_path,
+        schema_path=settings.schema_path,
+        asset_repository=asset_repository,
+        continue_label=ui_texts.continue_,
+    )
 
     sessionmaker = create_sessionmaker(settings)
     dispatcher = Dispatcher(
         asset_repository=asset_repository,
         ui_texts=ui_texts,
-        engine=engine,
+        scenario_registry=registry,
         privacy_version=settings.privacy_version,
     )
     dispatcher.update.middleware(DbSessionMiddleware(sessionmaker))

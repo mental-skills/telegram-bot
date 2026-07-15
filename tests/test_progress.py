@@ -5,9 +5,14 @@ from dataclasses import dataclass, field
 import pytest
 
 from app.content.models import AgeGroup
+from app.content.registry import ScenarioRegistry
 from app.db.models import TrainerSession, User
-from app.engine.engine import ScenarioEngine
-from app.services.progress import CallbackPayload, ProgressService
+from app.services.progress import (
+    STANDALONE_MODULE_ID,
+    CallbackPayload,
+    ProgressScreen,
+    ProgressService,
+)
 
 
 @dataclass
@@ -29,15 +34,37 @@ class FakeProgressRepository:
     next_id: int = 1
     duplicate: bool = False
 
-    async def get_active_session(self, user_id: int, scenario_id: str) -> TrainerSession | None:
+    choices: set[tuple[int, str, str]] = field(default_factory=set)
+
+    async def get_active_session(
+        self, user_id: int, module_id: str, scenario_id: str
+    ) -> TrainerSession | None:
         for session in self.sessions.values():
             if (
                 session.user_id == user_id
+                and session.module_id == module_id
                 and session.scenario_id == scenario_id
                 and session.status == "active"
             ):
                 return session
         return None
+
+    async def get_latest_session_for_module(
+        self,
+        user_id: int,
+        module_id: str,
+        scenario_ids: tuple[str, ...],
+    ) -> TrainerSession | None:
+        sessions = [
+            session
+            for session in self.sessions.values()
+            if session.user_id == user_id
+            and session.module_id == module_id
+            and session.scenario_id in scenario_ids
+        ]
+        if not sessions:
+            return None
+        return max(sessions, key=lambda session: session.id)
 
     async def get_session(self, session_id: int) -> TrainerSession | None:
         return self.sessions.get(session_id)
@@ -45,6 +72,7 @@ class FakeProgressRepository:
     async def create_session(
         self,
         user_id: int,
+        module_id: str,
         scenario_id: str,
         content_version: str,
         entry_node: str,
@@ -52,6 +80,7 @@ class FakeProgressRepository:
         session = TrainerSession(
             id=self.next_id,
             user_id=user_id,
+            module_id=module_id,
             scenario_id=scenario_id,
             content_version=content_version,
             current_node=entry_node,
@@ -74,30 +103,77 @@ class FakeProgressRepository:
     ) -> bool:
         if self.duplicate:
             return False
+        key = (trainer_session.id, from_node, option_id)
+        if key in self.choices:
+            return False
+        self.choices.add(key)
         trainer_session.current_node = to_node
         trainer_session.current_revision += 1
+        return True
+
+    async def record_system_action(
+        self,
+        trainer_session: TrainerSession,
+        option_id: str,
+        to_node: str,
+        tracking_code: str | None,
+        assessment: dict[str, object] | None,
+    ) -> bool:
+        if self.duplicate:
+            return False
+        key = (trainer_session.id, trainer_session.current_node, option_id)
+        if key in self.choices:
+            return False
+        self.choices.add(key)
         return True
 
     async def complete_session(self, trainer_session: TrainerSession) -> None:
         trainer_session.status = "completed"
         trainer_session.current_revision += 1
 
-    async def reset_active_sessions(self, user_id: int, scenario_id: str) -> None:
+    async def reset_active_sessions(self, user_id: int, module_id: str, scenario_id: str) -> None:
         for session in self.sessions.values():
-            if session.user_id == user_id and session.scenario_id == scenario_id:
+            if (
+                session.user_id == user_id
+                and session.module_id == module_id
+                and session.scenario_id == scenario_id
+            ):
+                session.status = "reset"
+
+    async def reset_active_sessions_for_module(self, user_id: int, module_id: str) -> None:
+        for session in self.sessions.values():
+            if session.user_id == user_id and session.module_id == module_id:
                 session.status = "reset"
 
 
-def make_service(engine: ScenarioEngine) -> tuple[ProgressService, FakeProgressRepository]:
+def make_service(registry: ScenarioRegistry) -> tuple[ProgressService, FakeProgressRepository]:
     user_repo = FakeUserRepository()
     progress_repo = FakeProgressRepository()
-    service = ProgressService(user_repo, progress_repo, engine, privacy_version="test")
+    service = ProgressService(user_repo, progress_repo, registry, privacy_version="test")
     return service, progress_repo
 
 
+async def complete_scenario_01(service: ProgressService) -> ProgressScreen:
+    progress = await service.start_or_continue(123)
+    assert progress is not None
+    for option_id in ("continue", "a", "a2", "continue", "continue", "continue", "continue"):
+        payload = CallbackPayload(
+            progress.trainer_session.id,
+            progress.trainer_session.current_revision,
+            option_id,
+        )
+        result = await service.handle_callback(123, payload.pack())
+        assert result.status == "ok"
+        assert result.progress_screen is not None
+        progress = result.progress_screen
+    assert progress.screen.node_id == "completion"
+    assert progress.trainer_session.status == "completed"
+    return progress
+
+
 @pytest.mark.asyncio
-async def test_save_and_restore_progress(engine: ScenarioEngine) -> None:
-    service, _ = make_service(engine)
+async def test_save_and_restore_progress(scenario_registry: ScenarioRegistry) -> None:
+    service, _ = make_service(scenario_registry)
     await service.set_age(123, "9-12")
     progress = await service.start_or_continue(123)
     assert progress is not None
@@ -109,11 +185,12 @@ async def test_save_and_restore_progress(engine: ScenarioEngine) -> None:
     restored = await service.start_or_continue(123)
     assert restored is not None
     assert restored.trainer_session.current_node == "start_choice"
+    assert restored.trainer_session.scenario_id == "PREMATCH_GAME_REFUSAL_01"
 
 
 @pytest.mark.asyncio
-async def test_stale_callback_is_ignored(engine: ScenarioEngine) -> None:
-    service, _ = make_service(engine)
+async def test_stale_callback_is_ignored(scenario_registry: ScenarioRegistry) -> None:
+    service, _ = make_service(scenario_registry)
     await service.set_age(123, "9-12")
     progress = await service.start_or_continue(123)
     assert progress is not None
@@ -123,8 +200,8 @@ async def test_stale_callback_is_ignored(engine: ScenarioEngine) -> None:
 
 
 @pytest.mark.asyncio
-async def test_duplicate_callback_is_reported(engine: ScenarioEngine) -> None:
-    service, progress_repo = make_service(engine)
+async def test_duplicate_callback_is_reported(scenario_registry: ScenarioRegistry) -> None:
+    service, progress_repo = make_service(scenario_registry)
     await service.set_age(123, "9-12")
     progress = await service.start_or_continue(123)
     assert progress is not None
@@ -137,11 +214,148 @@ async def test_duplicate_callback_is_reported(engine: ScenarioEngine) -> None:
 
 
 @pytest.mark.asyncio
-async def test_restart_creates_new_attempt(engine: ScenarioEngine) -> None:
-    service, _ = make_service(engine)
+async def test_restart_creates_new_attempt(scenario_registry: ScenarioRegistry) -> None:
+    service, _ = make_service(scenario_registry)
     await service.set_age(123, "9-12")
     first = await service.start_or_continue(123)
     second = await service.restart(123)
     assert first is not None and second is not None
     assert first.trainer_session.id != second.trainer_session.id
-    assert second.trainer_session.current_node == engine.entry_node
+    assert second.trainer_session.current_node == scenario_registry.start_engine().entry_node
+
+
+@pytest.mark.asyncio
+async def test_full_route_starts_with_scenario_01(scenario_registry: ScenarioRegistry) -> None:
+    service, _ = make_service(scenario_registry)
+    await service.set_age(123, "9-12")
+    progress = await service.start_or_continue(123)
+    assert progress is not None
+    assert progress.trainer_session.module_id == "football_parent_mvp"
+    assert progress.trainer_session.scenario_id == "PREMATCH_GAME_REFUSAL_01"
+    assert progress.screen.node_id == "intro"
+
+
+@pytest.mark.asyncio
+async def test_completion_01_is_restored_before_next(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    service, _ = make_service(scenario_registry)
+    await service.set_age(123, "9-12")
+    completed = await complete_scenario_01(service)
+    restored = await service.start_or_continue(123)
+    assert restored is not None
+    assert restored.trainer_session.id == completed.trainer_session.id
+    assert restored.screen.node_id == "completion"
+
+
+@pytest.mark.asyncio
+async def test_next_scenario_creates_scenario_02_session(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    service, _ = make_service(scenario_registry)
+    await service.set_age(123, "9-12")
+    completed = await complete_scenario_01(service)
+    payload = CallbackPayload(
+        completed.trainer_session.id,
+        completed.trainer_session.current_revision,
+        "next",
+    )
+    result = await service.handle_callback(123, payload.pack())
+    assert result.status == "ok"
+    assert result.progress_screen is not None
+    assert result.progress_screen.trainer_session.scenario_id == "PREMATCH_INSTRUCTIONS_02"
+    assert result.progress_screen.trainer_session.module_id == "football_parent_mvp"
+    assert result.progress_screen.screen.node_id == "intro"
+
+
+@pytest.mark.asyncio
+async def test_repeated_next_scenario_callback_is_duplicate(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    service, progress_repo = make_service(scenario_registry)
+    await service.set_age(123, "9-12")
+    completed = await complete_scenario_01(service)
+    payload = CallbackPayload(
+        completed.trainer_session.id,
+        completed.trainer_session.current_revision,
+        "next",
+    )
+    first = await service.handle_callback(123, payload.pack())
+    second = await service.handle_callback(123, payload.pack())
+    assert first.status == "ok"
+    assert second.status == "duplicate"
+    scenario2_sessions = [
+        session
+        for session in progress_repo.sessions.values()
+        if session.scenario_id == "PREMATCH_INSTRUCTIONS_02"
+        and session.module_id == "football_parent_mvp"
+    ]
+    assert len(scenario2_sessions) == 1
+
+
+@pytest.mark.asyncio
+async def test_repeated_repeat_callback_is_duplicate(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    service, progress_repo = make_service(scenario_registry)
+    await service.set_age(123, "9-12")
+    completed = await complete_scenario_01(service)
+    payload = CallbackPayload(
+        completed.trainer_session.id,
+        completed.trainer_session.current_revision,
+        "repeat",
+    )
+    first = await service.handle_callback(123, payload.pack())
+    second = await service.handle_callback(123, payload.pack())
+    assert first.status == "ok"
+    assert second.status == "duplicate"
+    scenario1_sessions = [
+        session
+        for session in progress_repo.sessions.values()
+        if session.scenario_id == "PREMATCH_GAME_REFUSAL_01"
+        and session.module_id == "football_parent_mvp"
+    ]
+    assert len(scenario1_sessions) == 2
+
+
+@pytest.mark.asyncio
+async def test_standalone_scenario_02_does_not_mix_with_route(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    service, progress_repo = make_service(scenario_registry)
+    await service.set_age(123, "9-12")
+    route = await service.start_or_continue(123)
+    standalone = await service.start_or_continue_standalone(123, "PREMATCH_INSTRUCTIONS_02")
+    assert route is not None and standalone is not None
+    assert route.trainer_session.module_id == "football_parent_mvp"
+    assert standalone.trainer_session.module_id == STANDALONE_MODULE_ID
+    assert standalone.trainer_session.scenario_id == "PREMATCH_INSTRUCTIONS_02"
+    assert len(progress_repo.sessions) == 2
+
+
+@pytest.mark.asyncio
+async def test_restart_scenario_02_keeps_route_progress(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    service, progress_repo = make_service(scenario_registry)
+    await service.set_age(123, "9-12")
+    route = await service.start_or_continue(123)
+    standalone = await service.start_or_continue_standalone(123, "PREMATCH_INSTRUCTIONS_02")
+    restarted = await service.restart_scenario(123, "PREMATCH_INSTRUCTIONS_02")
+    assert route is not None and standalone is not None and restarted is not None
+    assert route.trainer_session.status == "active"
+    assert standalone.trainer_session.status == "reset"
+    assert restarted.trainer_session.module_id == STANDALONE_MODULE_ID
+    assert len(progress_repo.sessions) == 3
+
+
+@pytest.mark.asyncio
+async def test_engine_is_selected_by_session_scenario_id(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    service, _ = make_service(scenario_registry)
+    await service.set_age(123, "13-16")
+    standalone = await service.start_or_continue_standalone(123, "PREMATCH_INSTRUCTIONS_02")
+    assert standalone is not None
+    assert standalone.screen.scenario_id == "PREMATCH_INSTRUCTIONS_02"
+    assert standalone.screen.title == "Ситуация 2 из 7. Последние инструкции перед стартом"

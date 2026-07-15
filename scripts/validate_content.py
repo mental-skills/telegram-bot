@@ -6,7 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.assets.repository import AssetRepository
-from app.content.validator import ScenarioValidator
+from app.content.registry import ScenarioRegistry
 
 
 def main() -> None:
@@ -17,9 +17,14 @@ def main() -> None:
         brand_tokens_path=root / "assets" / "brand_tokens.json",
         project_root=root,
     )
-    validator = ScenarioValidator(root / "content" / "scenario.schema.json", assets)
-    bundle = validator.validate_file(root / "content" / "PREMATCH_INSTRUCTIONS_02.json")
-    print(f"OK: {bundle.scenario.id} {bundle.scenario.content_version}")
+    registry = ScenarioRegistry.load(
+        catalog_path=root / "content" / "scenario_catalog.json",
+        schema_path=root / "content" / "scenario.schema.json",
+        asset_repository=assets,
+        continue_label="Продолжить",
+    )
+    loaded = ", ".join(registry.enabled_order)
+    print(f"OK: {registry.module_id} [{loaded}]")
 
 
 if __name__ == "__main__":

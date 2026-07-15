@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 from app.assets.repository import AssetRepository
-from app.content.models import SYSTEM_ROUTES
+from app.content.models import SYSTEM_ROUTES, ScenarioBundle
+from app.content.registry import ScenarioRegistry
 from app.content.repository import ContentRepository
 from app.content.validator import ScenarioValidator
 from app.core.errors import AssetValidationError, ContentValidationError
@@ -21,8 +22,29 @@ def test_json_passes_schema_and_extended_validation(
     assert bundle.scenario.content_version == "2026-07-15.3-brand-v2"
 
 
-def test_all_transitions_resolve(content_repository: ContentRepository) -> None:
-    bundle = content_repository.load()
+def test_scenario_catalog_loads_enabled_scenarios(scenario_registry: ScenarioRegistry) -> None:
+    assert scenario_registry.module_id == "football_parent_mvp"
+    assert scenario_registry.start_scenario_id == "PREMATCH_GAME_REFUSAL_01"
+    assert scenario_registry.enabled_order == (
+        "PREMATCH_GAME_REFUSAL_01",
+        "PREMATCH_INSTRUCTIONS_02",
+    )
+    assert set(scenario_registry.engines) == set(scenario_registry.enabled_order)
+
+
+def test_all_enabled_scenarios_pass_schema(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    assert scenario_registry.bundles["PREMATCH_GAME_REFUSAL_01"].scenario.title
+    assert scenario_registry.bundles["PREMATCH_INSTRUCTIONS_02"].scenario.title
+
+
+def test_all_transitions_resolve(scenario_registry: ScenarioRegistry) -> None:
+    for bundle in scenario_registry.bundles.values():
+        _assert_transitions_resolve(bundle)
+
+
+def _assert_transitions_resolve(bundle: ScenarioBundle) -> None:
     nodes = bundle.scenario.nodes
     for node in nodes.values():
         targets = [button.next for button in node.buttons]
@@ -32,13 +54,16 @@ def test_all_transitions_resolve(content_repository: ContentRepository) -> None:
             assert target in nodes or target in SYSTEM_ROUTES
 
 
-def test_all_nodes_are_reachable(content_repository: ContentRepository) -> None:
-    bundle = content_repository.load()
+def test_all_nodes_are_reachable(
+    content_repository: ContentRepository,
+    scenario_registry: ScenarioRegistry,
+) -> None:
     validator = ScenarioValidator(
         content_repository.schema_path, content_repository.asset_repository
     )
-    reachable = validator._reachable_nodes(bundle)  # noqa: SLF001
-    assert reachable == set(bundle.scenario.nodes)
+    for bundle in scenario_registry.bundles.values():
+        reachable = validator._reachable_nodes(bundle)  # noqa: SLF001
+        assert reachable == set(bundle.scenario.nodes)
 
 
 def test_missing_asset_is_rejected(tmp_path: Path, asset_repository: AssetRepository) -> None:

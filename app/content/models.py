@@ -85,6 +85,7 @@ class UiTexts(BaseModel):
     back_to_menu: str
     continue_: str = Field(alias="continue")
     continue_training: str
+    start_scenario_02: str
     restart: str
     repeat_scenario: str
     privacy: str

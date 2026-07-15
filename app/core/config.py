@@ -25,6 +25,10 @@ class Settings(BaseSettings):
         return self.content_dir / f"{self.scenario_id}.json"
 
     @property
+    def scenario_catalog_path(self) -> Path:
+        return self.content_dir / "scenario_catalog.json"
+
+    @property
     def schema_path(self) -> Path:
         return self.content_dir / "scenario.schema.json"
 

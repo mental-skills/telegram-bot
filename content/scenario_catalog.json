@@ -1,0 +1,16 @@
+{
+  "module_id": "football_parent_mvp",
+  "start_scenario_id": "PREMATCH_GAME_REFUSAL_01",
+  "scenarios": [
+    {
+      "scenario_id": "PREMATCH_GAME_REFUSAL_01",
+      "path": "PREMATCH_GAME_REFUSAL_01.json",
+      "enabled": true
+    },
+    {
+      "scenario_id": "PREMATCH_INSTRUCTIONS_02",
+      "path": "PREMATCH_INSTRUCTIONS_02.json",
+      "enabled": true
+    }
+  ]
+}
