@@ -44,6 +44,7 @@ async def start_handler(
     ui_texts: UiTexts,
     scenario_registry: ScenarioRegistry,
     privacy_version: str,
+    mini_app_url: str,
 ) -> None:
     service = _progress_service(db_session, scenario_registry, privacy_version)
     user = await service.get_or_create_user(message.from_user.id if message.from_user else 0)
@@ -51,7 +52,11 @@ async def start_handler(
         message=message,
         asset_repository=asset_repository,
         ui=ui_texts,
-        reply_markup=main_menu_keyboard(ui_texts, has_age=user.age_group is not None),
+        reply_markup=main_menu_keyboard(
+            ui_texts,
+            has_age=user.age_group is not None,
+            mini_app_url=mini_app_url,
+        ),
     )
 
 
@@ -94,6 +99,7 @@ async def age_handler(
     ui_texts: UiTexts,
     scenario_registry: ScenarioRegistry,
     privacy_version: str,
+    mini_app_url: str,
 ) -> None:
     age_group = age_from_callback(callback.data or "")
     if age_group is None or callback.from_user is None:
@@ -103,7 +109,8 @@ async def age_handler(
     await service.set_age(callback.from_user.id, age_group)
     if isinstance(callback.message, Message):
         await callback.message.answer(
-            ui_texts.age_saved, reply_markup=main_menu_keyboard(ui_texts, True)
+            ui_texts.age_saved,
+            reply_markup=main_menu_keyboard(ui_texts, True, mini_app_url),
         )
     await callback.answer()
 
@@ -116,6 +123,7 @@ async def menu_handler(
     ui_texts: UiTexts,
     scenario_registry: ScenarioRegistry,
     privacy_version: str,
+    mini_app_url: str,
 ) -> None:
     service = _progress_service(db_session, scenario_registry, privacy_version)
     user = await service.get_or_create_user(callback.from_user.id)
@@ -166,7 +174,11 @@ async def menu_handler(
     else:
         await message.answer(
             ui_texts.menu_text,
-            reply_markup=main_menu_keyboard(ui_texts, user.age_group is not None),
+            reply_markup=main_menu_keyboard(
+                ui_texts,
+                user.age_group is not None,
+                mini_app_url,
+            ),
         )
     await callback.answer()
 
@@ -179,6 +191,7 @@ async def scenario_callback_handler(
     ui_texts: UiTexts,
     scenario_registry: ScenarioRegistry,
     privacy_version: str,
+    mini_app_url: str,
 ) -> None:
     if callback.from_user is None:
         await callback.answer(ui_texts.generic_error, show_alert=True)
@@ -201,12 +214,16 @@ async def scenario_callback_handler(
         user = await service.get_or_create_user(callback.from_user.id)
         await callback.message.answer(
             ui_texts.menu_text,
-            reply_markup=main_menu_keyboard(ui_texts, user.age_group is not None),
+            reply_markup=main_menu_keyboard(
+                ui_texts,
+                user.age_group is not None,
+                mini_app_url,
+            ),
         )
     elif result.status == "next_unavailable" and callback.message:
         await callback.message.answer(
             ui_texts.scenario_unavailable,
-            reply_markup=main_menu_keyboard(ui_texts, True),
+            reply_markup=main_menu_keyboard(ui_texts, True, mini_app_url),
         )
     elif result.status == "duplicate":
         await callback.answer(ui_texts.duplicate_callback, show_alert=True)
@@ -218,5 +235,12 @@ async def scenario_callback_handler(
 
 
 @router.message()
-async def fallback_message_handler(message: Message, ui_texts: UiTexts) -> None:
-    await message.answer(ui_texts.menu_text, reply_markup=main_menu_keyboard(ui_texts, False))
+async def fallback_message_handler(
+    message: Message,
+    ui_texts: UiTexts,
+    mini_app_url: str,
+) -> None:
+    await message.answer(
+        ui_texts.menu_text,
+        reply_markup=main_menu_keyboard(ui_texts, False, mini_app_url),
+    )

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 96" fill="none">
+  <path d="M26 48h118" stroke="#FFD400" stroke-opacity=".28" stroke-width="2"/>
+  <path d="M26 48 62 22l46 52 36-26" stroke="#FFD400" stroke-opacity=".18"/>
+  <g fill="#080A0D" stroke="#FFD400" stroke-width="2">
+    <circle cx="26" cy="48" r="18"/><circle cx="85" cy="48" r="18"/><circle cx="144" cy="48" r="18"/>
+  </g>
+  <g fill="#FFD400" font-family="Inter,Arial" font-size="14" font-weight="700" text-anchor="middle"><text x="26" y="53">1</text><text x="85" y="53">2</text><text x="144" y="53">3</text></g>
+  <g fill="#FFD400"><circle cx="62" cy="22" r="3"/><circle cx="108" cy="74" r="3"/></g>
+</svg>

@@ -7,6 +7,12 @@ __pycache__/
 *.pyc
 dist/
 build/
+*.egg-info/
 .coverage
 htmlcov/
-
+node_modules/
+.pnpm-store/
+*.tsbuildinfo
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/

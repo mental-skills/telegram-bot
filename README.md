@@ -68,9 +68,32 @@ make mypy
 docker compose build
 ```
 
+## Telegram Mini App
+
+Mini App запускается вместе с ботом и использует тот же `ScenarioRegistry`,
+`ScenarioEngine`, `ProgressService` и PostgreSQL. Сценарные тексты остаются в `content/`.
+
+Основные настройки:
+
+- `MINI_APP_URL` — публичный HTTPS URL frontend;
+- `TELEGRAM_BOT_USERNAME` — username бота для возврата из вводного экрана ситуации №2;
+- `WEBAPP_SESSION_SECRET` — отдельный секрет подписи web-сессии, минимум 32 символа;
+- `TELEGRAM_AUTH_MAX_AGE_SECONDS` — максимальный возраст Telegram `initData`;
+- `DEV_AUTH_ENABLED` — локальный вход без Telegram, всегда `false` в production.
+
+Docker Compose запускает `db`, одноразовый `migrate`, затем `bot`, `api` и `frontend`.
+Миграции не запускаются из `bot` или `api`.
+
+```bash
+docker compose up --build
+```
+
+Frontend доступен на `http://localhost:8080`, API — через тот же origin по `/api/v1/`.
+Для реального запуска из Telegram задайте HTTPS URL и добавьте приложение в BotFather.
+
 ## Важные ограничения MVP
 
 - Подключены только ситуации №1 и №2.
-- Нет Mini App, CRM, оплаты, генеративного ИИ и административной панели.
+- Mini App в первой итерации полностью проводит ситуацию №1 и показывает только вводный экран ситуации №2; CRM, оплаты, генеративного ИИ и административной панели нет.
 - Итог семи ситуаций не формируется, потому что ситуации №3–7 ещё не перенесены.
 - Системные inline-кнопки Telegram не стилизуются, бренд передаётся через готовые runtime-карточки и структуру сообщений.

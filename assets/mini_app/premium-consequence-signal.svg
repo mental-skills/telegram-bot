@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" fill="none">
+  <defs><filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter></defs>
+  <g stroke="#FFD400">
+    <circle cx="75" cy="75" r="50" stroke-opacity=".14"/>
+    <circle cx="75" cy="75" r="38" stroke-opacity=".3"/>
+    <path d="M75 10v12M75 128v12M10 75h12M128 75h12M29 29l9 9M112 112l9 9M121 29l-9 9M38 112l-9 9" stroke-opacity=".48"/>
+  </g>
+  <path d="M75 42 105 98H45l30-56Z" fill="#FFD400" fill-opacity=".06" stroke="#FFD400" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M75 59v20" stroke="#FFD400" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="75" cy="88" r="2.5" fill="#FFD400"/>
+  <g fill="#FFD400"><circle cx="75" cy="10" r="2"/><circle cx="128" cy="75" r="2"/><circle cx="29" cy="29" r="2"/><circle cx="121" cy="121" r="2"/></g>
+  <circle cx="75" cy="75" r="30" stroke="#FFD400" stroke-opacity=".2" stroke-width="7" filter="url(#glow)"/>
+</svg>

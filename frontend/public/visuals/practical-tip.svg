@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 112" fill="none">
+  <path d="M48 56h164" stroke="#FFD400" stroke-opacity=".22" stroke-width="3"/>
+  <path d="m48 56 82-34 82 34-82 34-82-34Z" stroke="#FFD400" stroke-opacity=".13"/>
+  <g fill="#080A0D" stroke="#FFD400" stroke-width="2"><circle cx="48" cy="56" r="22"/><circle cx="130" cy="56" r="22"/><circle cx="212" cy="56" r="22"/></g>
+  <g fill="#FFD400" font-family="Inter,Arial" font-size="17" font-weight="700" text-anchor="middle"><text x="48" y="62">1</text><text x="130" y="62">2</text><text x="212" y="62">3</text></g>
+  <g fill="#FFD400"><circle cx="89" cy="39" r="3"/><circle cx="171" cy="39" r="3"/><circle cx="89" cy="73" r="3"/><circle cx="171" cy="73" r="3"/></g>
+</svg>

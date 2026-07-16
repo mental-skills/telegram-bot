@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 130" fill="none">
+  <defs>
+    <radialGradient id="focus" cx="0" cy="0" r="1" gradientTransform="translate(130 65) rotate(90) scale(39)">
+      <stop stop-color="#FFD400" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#FFD400" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="130" cy="65" r="39" fill="url(#focus)"/>
+  <g stroke="#FFD400" stroke-linecap="round">
+    <path d="M24 20c34 0 42 35 77 35 12 0 19 3 29 10" stroke-opacity=".28"/>
+    <path d="M18 65h74c15 0 25 0 38 0" stroke-opacity=".46" stroke-width="1.5"/>
+    <path d="M24 110c34 0 42-35 77-35 12 0 19-3 29-10" stroke-opacity=".28"/>
+    <path d="M236 20c-34 0-42 35-77 35-12 0-19 3-29 10" stroke-opacity=".28"/>
+    <path d="M242 65h-74c-15 0-25 0-38 0" stroke-opacity=".46" stroke-width="1.5"/>
+    <path d="M236 110c-34 0-42-35-77-35-12 0-19-3-29-10" stroke-opacity=".28"/>
+  </g>
+  <g fill="#FFD400">
+    <circle cx="24" cy="20" r="3"/><circle cx="18" cy="65" r="3"/><circle cx="24" cy="110" r="3"/>
+    <circle cx="236" cy="20" r="3"/><circle cx="242" cy="65" r="3"/><circle cx="236" cy="110" r="3"/>
+  </g>
+  <circle cx="130" cy="65" r="30" stroke="#FFD400" stroke-opacity=".18"/>
+  <circle cx="130" cy="65" r="21" fill="#080A0D" stroke="#FFD400" stroke-width="2"/>
+  <circle cx="130" cy="65" r="7" fill="#FFD400"/>
+  <circle cx="130" cy="65" r="3" fill="#050607"/>
+</svg>

@@ -33,6 +33,15 @@ class ProgressRepositoryProtocol(Protocol):
 
     async def get_session(self, session_id: int) -> TrainerSession | None: ...
 
+    async def get_session_for_update(self, session_id: int) -> TrainerSession | None: ...
+
+    async def list_sessions_for_module(
+        self,
+        user_id: int,
+        module_id: str,
+        scenario_ids: tuple[str, ...],
+    ) -> list[TrainerSession]: ...
+
     async def create_session(
         self,
         user_id: int,
@@ -100,6 +109,23 @@ class CallbackResult:
     progress_screen: ProgressScreen | None = None
 
 
+@dataclass(frozen=True)
+class SituationProgress:
+    scenario_id: str
+    title: str
+    estimated_minutes: int | None
+    status: Literal["not_started", "in_progress", "completed"]
+    attempt_no: int | None
+
+
+@dataclass(frozen=True)
+class ProgressSummary:
+    available_count: int
+    completed_count: int
+    current_scenario_id: str | None
+    situations: tuple[SituationProgress, ...]
+
+
 class ProgressService:
     def __init__(
         self,
@@ -138,6 +164,63 @@ class ProgressService:
         engine = self.registry.get_engine(trainer_session.scenario_id)
         screen = engine.render(trainer_session.current_node, user.age_group)  # type: ignore[arg-type]
         return ProgressScreen(user=user, trainer_session=trainer_session, screen=screen)
+
+    async def get_current_progress(self, telegram_user_id: int) -> ProgressScreen | None:
+        user = await self.get_or_create_user(telegram_user_id)
+        if user.age_group is None:
+            return None
+        trainer_session = await self._latest_route_session(user.id)
+        if trainer_session is None:
+            return None
+        engine = self.registry.get_engine(trainer_session.scenario_id)
+        screen = engine.render(trainer_session.current_node, user.age_group)  # type: ignore[arg-type]
+        return ProgressScreen(user=user, trainer_session=trainer_session, screen=screen)
+
+    async def get_progress_summary(self, telegram_user_id: int) -> ProgressSummary:
+        user = await self.get_or_create_user(telegram_user_id)
+        scenario_ids = self.registry.enabled_order
+        sessions = await self.progress_repository.list_sessions_for_module(
+            user.id,
+            self.registry.module_id,
+            scenario_ids,
+        )
+        latest_by_scenario: dict[str, TrainerSession] = {}
+        completed_ids: set[str] = set()
+        for session in sessions:
+            latest_by_scenario.setdefault(session.scenario_id, session)
+            if session.status == "completed":
+                completed_ids.add(session.scenario_id)
+
+        current = next((item for item in sessions if item.status == "active"), None)
+        if current is None and sessions:
+            current = sessions[0]
+
+        situations: list[SituationProgress] = []
+        for scenario_id in scenario_ids:
+            bundle = self.registry.bundles[scenario_id]
+            latest = latest_by_scenario.get(scenario_id)
+            if scenario_id in completed_ids:
+                status: Literal["not_started", "in_progress", "completed"] = "completed"
+            elif latest is not None and latest.status == "active":
+                status = "in_progress"
+            else:
+                status = "not_started"
+            situations.append(
+                SituationProgress(
+                    scenario_id=scenario_id,
+                    title=bundle.scenario.title,
+                    estimated_minutes=bundle.scenario.estimated_minutes,
+                    status=status,
+                    attempt_no=latest.attempt_no if latest else None,
+                )
+            )
+
+        return ProgressSummary(
+            available_count=len(scenario_ids),
+            completed_count=len(completed_ids),
+            current_scenario_id=current.scenario_id if current else None,
+            situations=tuple(situations),
+        )
 
     async def start_or_continue_standalone(
         self, telegram_user_id: int, scenario_id: str
@@ -201,18 +284,32 @@ class ProgressService:
 
     async def handle_callback(self, telegram_user_id: int, raw_callback: str) -> CallbackResult:
         payload = CallbackPayload.unpack(raw_callback)
+        return await self.advance(
+            telegram_user_id=telegram_user_id,
+            session_id=payload.session_id,
+            revision=payload.revision,
+            option_id=payload.option_id,
+        )
+
+    async def advance(
+        self,
+        telegram_user_id: int,
+        session_id: int,
+        revision: int,
+        option_id: str,
+    ) -> CallbackResult:
         user = await self.get_or_create_user(telegram_user_id)
         if user.age_group is None:
             return CallbackResult(status="stale")
 
-        trainer_session = await self.progress_repository.get_session(payload.session_id)
+        trainer_session = await self.progress_repository.get_session_for_update(session_id)
         if trainer_session is None or trainer_session.user_id != user.id:
             return CallbackResult(status="stale")
-        if trainer_session.current_revision != payload.revision:
+        if trainer_session.current_revision != revision:
             return CallbackResult(status="stale")
 
         engine = self.registry.get_engine(trainer_session.scenario_id)
-        transition = engine.transition(trainer_session.current_node, payload.option_id)
+        transition = engine.transition(trainer_session.current_node, option_id)
         if transition.to_node == SYSTEM_MAIN_MENU:
             return CallbackResult(status="main_menu")
         if transition.to_node == SYSTEM_NEXT_SCENARIO:

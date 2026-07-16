@@ -1,0 +1,34 @@
+{
+  "version": "2.0",
+  "surfaces": {
+    "start_logo": "brand_logo_official",
+    "start_background": "premium_neural_mesh",
+    "home": "premium_football_matrix"
+  },
+  "scenarios": {
+    "PREMATCH_GAME_REFUSAL_01": {
+      "types": {
+        "info": "premium_football_matrix",
+        "choice": null,
+        "outcome": "premium_consequence_signal",
+        "advice": "premium_three_questions",
+        "tool": "premium_three_questions",
+        "completion": "premium_completion_network"
+      },
+      "nodes": {
+        "summary_main": "premium_consequence_signal",
+        "tool_three_questions": "premium_three_questions"
+      }
+    },
+    "PREMATCH_INSTRUCTIONS_02": {
+      "types": {
+        "info": "premium_football_matrix",
+        "choice": null,
+        "outcome": "premium_consequence_signal",
+        "advice": "premium_three_questions",
+        "tool": "premium_three_questions",
+        "completion": "premium_completion_network"
+      }
+    }
+  }
+}

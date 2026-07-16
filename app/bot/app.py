@@ -4,44 +4,23 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-from app.assets.repository import AssetRepository
+from app.application import build_runtime
 from app.bot.handlers import router
 from app.bot.middleware import DbSessionMiddleware
-from app.content.registry import ScenarioRegistry
-from app.content.repository import ContentRepository
 from app.core.config import Settings
-from app.db.session import create_sessionmaker
 from app.services.rate_limit import InMemoryRateLimitMiddleware
 
 
 def build_dispatcher(settings: Settings) -> Dispatcher:
-    asset_repository = AssetRepository(
-        manifest_path=settings.asset_manifest_path,
-        visual_usage_map_path=settings.visual_usage_map_path,
-        brand_tokens_path=settings.brand_tokens_path,
-    )
-    content_repository = ContentRepository(
-        scenario_path=settings.scenario_path,
-        schema_path=settings.schema_path,
-        ui_texts_path=settings.ui_texts_path,
-        asset_repository=asset_repository,
-    )
-    ui_texts = content_repository.get_ui_texts()
-    registry = ScenarioRegistry.load(
-        catalog_path=settings.scenario_catalog_path,
-        schema_path=settings.schema_path,
-        asset_repository=asset_repository,
-        continue_label=ui_texts.continue_,
-    )
-
-    sessionmaker = create_sessionmaker(settings)
+    runtime = build_runtime(settings)
     dispatcher = Dispatcher(
-        asset_repository=asset_repository,
-        ui_texts=ui_texts,
-        scenario_registry=registry,
+        asset_repository=runtime.asset_repository,
+        ui_texts=runtime.ui_texts,
+        scenario_registry=runtime.scenario_registry,
         privacy_version=settings.privacy_version,
+        mini_app_url=settings.mini_app_url,
     )
-    dispatcher.update.middleware(DbSessionMiddleware(sessionmaker))
+    dispatcher.update.middleware(DbSessionMiddleware(runtime.sessionmaker))
     dispatcher.update.middleware(
         InMemoryRateLimitMiddleware(settings.rate_limit_messages_per_minute)
     )

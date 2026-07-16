@@ -1,0 +1,137 @@
+from __future__ import annotations
+
+from app.api.schemas import (
+    ActionResponse,
+    MiniAppVisualResponse,
+    ProgressResponse,
+    ScreenResponse,
+    SituationResponse,
+    TrainingResponse,
+)
+from app.application import ApplicationRuntime
+from app.content.models import SYSTEM_MAIN_MENU, SYSTEM_NEXT_SCENARIO
+from app.engine.types import ScenarioScreen, ScreenButton
+from app.mini_app.visuals import MiniAppVisualAsset
+from app.services.progress import ProgressScreen, ProgressSummary
+
+MINI_APP_SCENARIO_ID = "PREMATCH_GAME_REFUSAL_01"
+BOUNDARY_SCENARIO_ID = "PREMATCH_INSTRUCTIONS_02"
+
+
+def present_training(
+    progress: ProgressScreen,
+    runtime: ApplicationRuntime,
+) -> TrainingResponse:
+    screen = progress.screen
+    is_boundary = screen.scenario_id == BOUNDARY_SCENARIO_ID
+    if is_boundary:
+        engine = runtime.scenario_registry.get_engine(BOUNDARY_SCENARIO_ID)
+        screen = engine.render(engine.entry_node, progress.user.age_group)  # type: ignore[arg-type]
+
+    visual_asset = runtime.mini_app_visuals.get_screen_visual(
+        screen.scenario_id,
+        screen.node_id,
+        screen.node_type,
+    )
+    visual = present_visual(visual_asset) if visual_asset else None
+
+    actions = _boundary_actions(runtime) if is_boundary else _screen_actions(screen)
+    bundle = runtime.scenario_registry.bundles[screen.scenario_id]
+    return TrainingResponse(
+        scenario_id=screen.scenario_id,
+        content_version=screen.content_version,
+        scenario_title=bundle.scenario.title,
+        session_id=progress.trainer_session.id,
+        revision=progress.trainer_session.current_revision,
+        status=progress.trainer_session.status,
+        screen=ScreenResponse(
+            node_id=screen.node_id,
+            type=screen.node_type,
+            title=screen.title,
+            text=screen.text,
+            quote=screen.quote,
+            visual=visual,
+            actions=actions,
+            is_completion=screen.is_completion,
+            is_mini_app_boundary=is_boundary,
+            stage=_screen_stage(screen),
+        ),
+    )
+
+
+def present_visual(asset: MiniAppVisualAsset) -> MiniAppVisualResponse:
+    return MiniAppVisualResponse(
+        id=asset.id,
+        url=f"/api/v1/mini-app/assets/{asset.id}",
+        alt=asset.alt,
+        kind=asset.kind,
+    )
+
+
+def present_progress(summary: ProgressSummary) -> ProgressResponse:
+    return ProgressResponse(
+        available_count=summary.available_count,
+        completed_count=summary.completed_count,
+        current_scenario_id=summary.current_scenario_id,
+        situations=[
+            SituationResponse(
+                scenario_id=item.scenario_id,
+                title=item.title,
+                estimated_minutes=item.estimated_minutes,
+                status=item.status,
+                attempt_no=item.attempt_no,
+            )
+            for item in summary.situations
+        ],
+    )
+
+
+def _screen_actions(screen: ScenarioScreen) -> list[ActionResponse]:
+    return [_present_button(screen, button) for button in screen.buttons]
+
+
+def _present_button(screen: ScenarioScreen, button: ScreenButton) -> ActionResponse:
+    if button.next_node == SYSTEM_MAIN_MENU:
+        kind = "main_menu"
+    elif button.next_node == SYSTEM_NEXT_SCENARIO:
+        kind = "next_scenario"
+    elif screen.is_completion and button.id == "repeat":
+        kind = "repeat"
+    elif screen.node_type == "choice":
+        kind = "choice"
+    else:
+        kind = "continue"
+    return ActionResponse(id=button.id, label=button.label, kind=kind)
+
+
+def _boundary_actions(runtime: ApplicationRuntime) -> list[ActionResponse]:
+    actions = [
+        ActionResponse(
+            id="home",
+            label=runtime.ui_texts.back_to_menu,
+            kind="main_menu",
+        )
+    ]
+    username = runtime.settings.telegram_bot_username.lstrip("@")
+    if username:
+        actions.append(
+            ActionResponse(
+                id="open_bot",
+                label="Открыть в Telegram-боте",
+                kind="open_bot",
+                href=f"https://t.me/{username}",
+            )
+        )
+    return actions
+
+
+def _screen_stage(screen: ScenarioScreen) -> int:
+    return {
+        "info": 1,
+        "choice": 2,
+        "outcome": 3,
+        "advice": 4,
+        "tool": 5,
+        "completion": 6,
+        "emergency": 6,
+    }[screen.node_type]

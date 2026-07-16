@@ -88,6 +88,31 @@ class ProgressRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_session_for_update(self, session_id: int) -> TrainerSession | None:
+        result = await self.session.execute(
+            select(TrainerSession)
+            .where(TrainerSession.id == session_id)
+            .with_for_update()
+        )
+        return result.scalar_one_or_none()
+
+    async def list_sessions_for_module(
+        self,
+        user_id: int,
+        module_id: str,
+        scenario_ids: tuple[str, ...],
+    ) -> list[TrainerSession]:
+        result = await self.session.execute(
+            select(TrainerSession)
+            .where(
+                TrainerSession.user_id == user_id,
+                TrainerSession.module_id == module_id,
+                TrainerSession.scenario_id.in_(scenario_ids),
+            )
+            .order_by(TrainerSession.last_activity_at.desc(), TrainerSession.id.desc())
+        )
+        return list(result.scalars().all())
+
     async def create_session(
         self,
         user_id: int,

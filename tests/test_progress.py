@@ -69,6 +69,27 @@ class FakeProgressRepository:
     async def get_session(self, session_id: int) -> TrainerSession | None:
         return self.sessions.get(session_id)
 
+    async def get_session_for_update(self, session_id: int) -> TrainerSession | None:
+        return self.sessions.get(session_id)
+
+    async def list_sessions_for_module(
+        self,
+        user_id: int,
+        module_id: str,
+        scenario_ids: tuple[str, ...],
+    ) -> list[TrainerSession]:
+        return sorted(
+            [
+                session
+                for session in self.sessions.values()
+                if session.user_id == user_id
+                and session.module_id == module_id
+                and session.scenario_id in scenario_ids
+            ],
+            key=lambda session: session.id,
+            reverse=True,
+        )
+
     async def create_session(
         self,
         user_id: int,
@@ -359,3 +380,19 @@ async def test_engine_is_selected_by_session_scenario_id(
     assert standalone is not None
     assert standalone.screen.scenario_id == "PREMATCH_INSTRUCTIONS_02"
     assert standalone.screen.title == "Ситуация 2 из 7. Последние инструкции перед стартом"
+
+
+@pytest.mark.asyncio
+async def test_progress_summary_contains_only_enabled_situations(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    service, _ = make_service(scenario_registry)
+    await service.set_age(123, "9-12")
+    await service.start_or_continue(123)
+    summary = await service.get_progress_summary(123)
+    assert summary.available_count == 2
+    assert summary.completed_count == 0
+    assert [item.scenario_id for item in summary.situations] == [
+        "PREMATCH_GAME_REFUSAL_01",
+        "PREMATCH_INSTRUCTIONS_02",
+    ]

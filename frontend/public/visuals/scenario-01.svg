@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 190" fill="none">
+  <defs><linearGradient id="bg" x1="16" y1="10" x2="342" y2="188"><stop stop-color="#11151A"/><stop offset="1" stop-color="#050607"/></linearGradient></defs>
+  <rect x="1" y="1" width="358" height="188" rx="18" fill="url(#bg)" stroke="#fff" stroke-opacity=".11"/>
+  <path d="M18 30h324v142H18zM180 30v142M18 101h324" stroke="#fff" stroke-opacity=".12"/>
+  <path d="M18 61h44v80H18M342 61h-44v80h44" stroke="#fff" stroke-opacity=".13"/>
+  <path d="M31 160c16-37 34-57 60-62 34-7 40 32 75 11 26-15 24-50 55-58 27-7 43 18 65 9 16-6 27-22 45-30" stroke="#FFD400" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 8"/>
+  <g fill="#FFD400"><circle cx="31" cy="160" r="7"/><circle cx="91" cy="98" r="6"/><circle cx="166" cy="109" r="5"/><circle cx="221" cy="51" r="6"/><circle cx="286" cy="60" r="5"/><circle cx="331" cy="30" r="6"/></g>
+  <g stroke="#FFD400" stroke-opacity=".18"><path d="M31 160v-42M91 98v65M166 109v54M221 51v112M286 60v103"/></g>
+  <circle cx="166" cy="109" r="23" stroke="#FFD400" stroke-opacity=".4"/><circle cx="166" cy="109" r="9" fill="#050607" stroke="#fff" stroke-width="2"/><circle cx="166" cy="109" r="3" fill="#FFD400"/>
+</svg>

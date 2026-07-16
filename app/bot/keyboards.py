@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
 from app.bot.callbacks import age_callback, menu_callback, reset_callback
 from app.content.models import AgeGroup, UiTexts
@@ -8,8 +8,22 @@ from app.engine.types import ScenarioScreen
 from app.services.progress import CallbackPayload
 
 
-def main_menu_keyboard(ui: UiTexts, has_age: bool) -> InlineKeyboardMarkup:
-    buttons = [
+def main_menu_keyboard(
+    ui: UiTexts,
+    has_age: bool,
+    mini_app_url: str | None = None,
+) -> InlineKeyboardMarkup:
+    buttons: list[list[InlineKeyboardButton]] = []
+    if mini_app_url:
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text="Открыть Mini App",
+                    web_app=WebAppInfo(url=mini_app_url),
+                )
+            ]
+        )
+    buttons.extend([
         [InlineKeyboardButton(text=ui.continue_training, callback_data=menu_callback("continue"))],
         [
             InlineKeyboardButton(
@@ -20,7 +34,7 @@ def main_menu_keyboard(ui: UiTexts, has_age: bool) -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text=ui.tools, callback_data=menu_callback("tools"))],
         [InlineKeyboardButton(text=ui.about, callback_data=menu_callback("about"))],
         [InlineKeyboardButton(text=ui.privacy, callback_data=menu_callback("privacy"))],
-    ]
+    ])
     if has_age:
         buttons.append(
             [InlineKeyboardButton(text=ui.change_age, callback_data=menu_callback("age"))]
