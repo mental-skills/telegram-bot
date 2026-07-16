@@ -3,17 +3,32 @@ from __future__ import annotations
 import logging
 
 from aiogram import Bot
-from aiogram.types import CallbackQuery, FSInputFile, InlineKeyboardMarkup, Message
+from aiogram.types import (
+    CallbackQuery,
+    FSInputFile,
+    InlineKeyboardMarkup,
+    Message,
+    ReplyKeyboardRemove,
+)
 
 from app.assets.repository import AssetRepository
 from app.bot.keyboards import scenario_keyboard
-from app.content.models import UiTexts
 from app.db.models import TrainerSession
 from app.engine.types import ScenarioScreen
 
 logger = logging.getLogger(__name__)
 
 TELEGRAM_CAPTION_LIMIT = 1024
+
+BOT_WELCOME_TEXT = (
+    "Mental Skills — ментальный спортзал для родителей юных футболистов\n\n"
+    "Семь ситуаций до, во время и после матча.\n"
+    "Вы выбираете реакцию, видите возможные последствия и получаете практический совет "
+    "и готовую фразу.\n\n"
+    "Тренажёр не ставит диагнозы и не оценивает вас как родителя."
+)
+
+BOT_APP_PROMPT = "Откройте ментальный спортзал в Mini App."
 
 
 def format_screen_text(screen: ScenarioScreen) -> str:
@@ -29,21 +44,22 @@ def format_screen_text(screen: ScenarioScreen) -> str:
 
 async def send_start_card(
     message: Message,
-    asset_repository: AssetRepository,
-    ui: UiTexts,
     reply_markup: InlineKeyboardMarkup,
 ) -> None:
-    text = f"<b>{ui.start_title}</b>\n\n{ui.start_text}"
-    if message.bot is None:
-        return
-    await _send_optional_photo(
-        bot=message.bot,
-        chat_id=message.chat.id,
-        asset_repository=asset_repository,
-        asset_id="brand_logo_horizontal",
-        text=text,
-        reply_markup=reply_markup,
-    )
+    """Send one compact greeting and remove any legacy reply keyboard."""
+    sent = await message.answer(BOT_WELCOME_TEXT, reply_markup=ReplyKeyboardRemove())
+    try:
+        await sent.edit_reply_markup(reply_markup=reply_markup)
+    except Exception as exc:
+        logger.info("start_inline_keyboard_fallback error=%s", exc.__class__.__name__)
+        await message.answer(BOT_APP_PROMPT, reply_markup=reply_markup)
+
+
+async def send_app_launcher(
+    message: Message,
+    reply_markup: InlineKeyboardMarkup,
+) -> None:
+    await message.answer(BOT_APP_PROMPT, reply_markup=reply_markup)
 
 
 async def send_screen(
