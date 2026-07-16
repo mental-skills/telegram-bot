@@ -19,7 +19,7 @@ def test_json_passes_schema_and_extended_validation(
     bundle = content_repository.load()
     assert bundle.schema_version == "1.2"
     assert bundle.scenario.id == "PREMATCH_INSTRUCTIONS_02"
-    assert bundle.scenario.content_version == "2026-07-15.3-brand-v2"
+    assert bundle.scenario.content_version == "2026-07-16.1-approved-v1"
 
 
 def test_scenario_catalog_loads_enabled_scenarios(scenario_registry: ScenarioRegistry) -> None:
@@ -28,6 +28,11 @@ def test_scenario_catalog_loads_enabled_scenarios(scenario_registry: ScenarioReg
     assert scenario_registry.enabled_order == (
         "PREMATCH_GAME_REFUSAL_01",
         "PREMATCH_INSTRUCTIONS_02",
+        "CHILD_ERROR_LOOKS_AT_PARENT_03",
+        "CHILD_LEFT_ON_BENCH_04",
+        "DISPUTED_REFEREE_DECISION_05",
+        "CHILD_SILENT_AFTER_DEFEAT_06",
+        "PARENT_RESPONSE_AFTER_VICTORY_07",
     )
     assert set(scenario_registry.engines) == set(scenario_registry.enabled_order)
 
@@ -35,8 +40,8 @@ def test_scenario_catalog_loads_enabled_scenarios(scenario_registry: ScenarioReg
 def test_all_enabled_scenarios_pass_schema(
     scenario_registry: ScenarioRegistry,
 ) -> None:
-    assert scenario_registry.bundles["PREMATCH_GAME_REFUSAL_01"].scenario.title
-    assert scenario_registry.bundles["PREMATCH_INSTRUCTIONS_02"].scenario.title
+    assert len(scenario_registry.bundles) == 7
+    assert all(bundle.scenario.title for bundle in scenario_registry.bundles.values())
 
 
 def test_all_transitions_resolve(scenario_registry: ScenarioRegistry) -> None:

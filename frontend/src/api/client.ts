@@ -43,6 +43,10 @@ export const getProgress = () => request<Progress>("/api/v1/progress");
 export const getCurrentTraining = () => request<Training>("/api/v1/training/current");
 export const startOrContinue = () =>
   request<Training>("/api/v1/training/start-or-continue", { method: "POST" });
+export const startSituation = (scenarioId: string) =>
+  request<Training>(`/api/v1/training/situations/${scenarioId}/start-or-continue`, {
+    method: "POST"
+  });
 export const restartTraining = () =>
   request<Training>("/api/v1/training/restart", { method: "POST" });
 export const setAge = (age_group: string) =>

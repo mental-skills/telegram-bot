@@ -29,6 +29,57 @@
         "tool": "premium_three_questions",
         "completion": "premium_completion_network"
       }
+    },
+    "CHILD_ERROR_LOOKS_AT_PARENT_03": {
+      "types": {
+        "info": "premium_football_matrix",
+        "choice": null,
+        "outcome": "premium_consequence_signal",
+        "advice": "premium_three_questions",
+        "tool": "premium_three_questions",
+        "completion": "premium_completion_network"
+      }
+    },
+    "CHILD_LEFT_ON_BENCH_04": {
+      "types": {
+        "info": "premium_football_matrix",
+        "choice": null,
+        "outcome": "premium_consequence_signal",
+        "advice": "premium_three_questions",
+        "tool": "premium_three_questions",
+        "completion": "premium_completion_network"
+      }
+    },
+    "DISPUTED_REFEREE_DECISION_05": {
+      "types": {
+        "info": "premium_football_matrix",
+        "choice": null,
+        "outcome": "premium_consequence_signal",
+        "advice": "premium_three_questions",
+        "tool": "premium_three_questions",
+        "completion": "premium_completion_network"
+      }
+    },
+    "CHILD_SILENT_AFTER_DEFEAT_06": {
+      "types": {
+        "info": "premium_football_matrix",
+        "choice": null,
+        "outcome": "premium_consequence_signal",
+        "advice": "premium_three_questions",
+        "tool": "premium_three_questions",
+        "emergency": "premium_consequence_signal",
+        "completion": "premium_completion_network"
+      }
+    },
+    "PARENT_RESPONSE_AFTER_VICTORY_07": {
+      "types": {
+        "info": "premium_football_matrix",
+        "choice": null,
+        "outcome": "premium_consequence_signal",
+        "advice": "premium_three_questions",
+        "tool": "premium_three_questions",
+        "completion": "premium_completion_network"
+      }
     }
   }
 }

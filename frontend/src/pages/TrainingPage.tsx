@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { ApiError, getCurrentTraining, transition } from "../api/client";
+import { ApiError, getCurrentTraining, startSituation, transition } from "../api/client";
 import type { Action, Training } from "../api/contracts";
 import { BrandLogo } from "../components/BrandLogo";
 import {
@@ -10,6 +10,11 @@ import {
   PracticalTipGraphic,
   Scenario01Graphic,
   Scenario02Graphic,
+  Scenario03Graphic,
+  Scenario04Graphic,
+  Scenario05Graphic,
+  Scenario06Graphic,
+  Scenario07Graphic,
   SummaryGraphic
 } from "../components/PurposeGraphics";
 import { ErrorPage, LoadingPage } from "../components/StatusPages";
@@ -25,9 +30,17 @@ function splitIntroTitle(title: string | null, fallback: string, isIntro: boolea
 function ScreenGraphic({ training }: { training: Training }) {
   const { screen } = training;
   if (screen.type === "info") {
-    return training.scenario_id === "PREMATCH_INSTRUCTIONS_02"
-      ? <Scenario02Graphic className="purpose-graphic-intro" />
-      : <Scenario01Graphic className="purpose-graphic-intro" />;
+    const graphics = {
+      PREMATCH_GAME_REFUSAL_01: Scenario01Graphic,
+      PREMATCH_INSTRUCTIONS_02: Scenario02Graphic,
+      CHILD_ERROR_LOOKS_AT_PARENT_03: Scenario03Graphic,
+      CHILD_LEFT_ON_BENCH_04: Scenario04Graphic,
+      DISPUTED_REFEREE_DECISION_05: Scenario05Graphic,
+      CHILD_SILENT_AFTER_DEFEAT_06: Scenario06Graphic,
+      PARENT_RESPONSE_AFTER_VICTORY_07: Scenario07Graphic
+    } as const;
+    const Graphic = graphics[training.scenario_id as keyof typeof graphics] ?? Scenario01Graphic;
+    return <Graphic className="purpose-graphic-intro" />;
   }
   if (screen.type === "outcome") {
     return <ConsequenceGraphic className="purpose-graphic-card" />;
@@ -105,6 +118,14 @@ export function TrainingPage() {
       }
     }
   });
+  const scenarioMutation = useMutation({
+    mutationFn: startSituation,
+    onSuccess: (nextTraining) => {
+      queryClient.setQueryData(["training"], nextTraining);
+      setRequestError(null);
+    },
+    onError: () => setRequestError("Не удалось открыть ситуацию. Попробуйте ещё раз.")
+  });
 
   if (query.isLoading) return <LoadingPage />;
   if (query.isError || !query.data) {
@@ -116,7 +137,10 @@ export function TrainingPage() {
   const quotePhase = screen.type === "advice" && Boolean(screen.quote) && showQuote;
   const completionPrimary = screen.actions.find((action) => action.kind === "next_scenario");
   const completionSecondary = screen.actions.filter((action) => action.kind === "repeat" || action.kind === "main_menu");
-  const hasActionPanel = screen.type !== "choice";
+  const moduleScenarioActions = screen.actions.filter((action) => action.kind === "open_scenario");
+  const moduleHomeAction = screen.actions.find((action) => action.kind === "main_menu");
+  const isModuleCompletion = screen.node_id === "module_completion";
+  const hasActionPanel = screen.type !== "choice" && !isModuleCompletion;
 
   const handleAction = (action: Action) => {
     if (action.kind === "main_menu") {
@@ -125,6 +149,10 @@ export function TrainingPage() {
     }
     if (action.kind === "open_bot" && action.href) {
       window.location.assign(action.href);
+      return;
+    }
+    if (action.kind === "open_scenario" && action.scenario_id) {
+      scenarioMutation.mutate(action.scenario_id);
       return;
     }
     mutation.mutate({ training, optionId: action.id });
@@ -154,15 +182,37 @@ export function TrainingPage() {
         {quotePhase ? (
           <section className="quote-card advice-quote-card">
             <span className="card-kicker">Готовая фраза</span>
-            <blockquote>«{screen.quote}»</blockquote>
+            <blockquote>{screen.quote}</blockquote>
           </section>
         ) : (
           <section className={`screen-card screen-${screen.type}`}>
             {screen.type !== "info" ? <ScreenGraphic training={training} /> : null}
             <p>{screen.text}</p>
-            {screen.type !== "advice" && screen.quote ? <blockquote>«{screen.quote}»</blockquote> : null}
+            {screen.type !== "advice" && screen.quote ? <blockquote>{screen.quote}</blockquote> : null}
           </section>
         )}
+
+        {isModuleCompletion ? (
+          <section className="module-scenario-list" aria-label="Пройденные ситуации">
+            <span className="card-kicker">Открыть повторно</span>
+            {moduleScenarioActions.map((action, index) => (
+              <button
+                key={action.id}
+                className="module-scenario-button"
+                disabled={scenarioMutation.isPending}
+                onClick={() => handleAction(action)}
+              >
+                <span>{index + 1}</span>
+                {action.label}
+              </button>
+            ))}
+            {moduleHomeAction ? (
+              <button className="primary-button module-home-button" onClick={() => handleAction(moduleHomeAction)}>
+                {moduleHomeAction.label}
+              </button>
+            ) : null}
+          </section>
+        ) : null}
 
         {screen.type === "choice" ? (
           <div className="choice-list">
@@ -198,7 +248,7 @@ export function TrainingPage() {
                   disabled={mutation.isPending}
                   onClick={() => handleAction(action)}
                 >
-                  {action.kind === "repeat" ? "Повторить" : "На главную"}
+                  {action.label}
                 </button>
               ))}
             </div>

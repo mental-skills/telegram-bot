@@ -49,9 +49,9 @@ describe("TrainingPage", () => {
     renderTraining(base);
     expect(screen.getByText(base.screen.text)).toBeInTheDocument();
     expect(screen.queryByLabelText("Три шага практического инструмента")).not.toBeInTheDocument();
-    expect(screen.queryByText(`«${base.screen.quote}»`)).not.toBeInTheDocument();
+    expect(screen.queryByText(base.screen.quote!)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Показать готовую фразу" }));
-    expect(screen.getByText(`«${base.screen.quote}»`)).toBeInTheDocument();
+    expect(screen.getByText(base.screen.quote!)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Продолжить" })).toBeInTheDocument();
   });
 
@@ -88,11 +88,11 @@ describe("TrainingPage", () => {
       }
     });
     expect(screen.getAllByText("Перейти к ситуации 2")).toHaveLength(1);
-    expect(screen.getByRole("button", { name: "Повторить" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "На главную" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Повторить ситуацию" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Главное меню" })).toBeInTheDocument();
   });
 
-  it("does not render a continue action on the scenario 2 boundary", () => {
+  it("renders the approved scenario 2 intro and allows continuing", () => {
     renderTraining({
       ...base,
       scenario_id: "PREMATCH_INSTRUCTIONS_02",
@@ -103,15 +103,14 @@ describe("TrainingPage", () => {
         type: "info",
         title: "Ситуация 2 из 7. Последние инструкции перед стартом",
         quote: null,
-        is_mini_app_boundary: true,
-        actions: [{ id: "home", label: "Главное меню", kind: "main_menu", href: null }],
+        is_mini_app_boundary: false,
+        actions: [{ id: "continue", label: "Продолжить", kind: "continue", href: null }],
         stage: 1
       }
     });
     expect(screen.getByText("Ситуация 2 из 7")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Последние инструкции перед стартом" })).toBeInTheDocument();
     expect(screen.getByLabelText("Три смысловых узла перед стартом")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Продолжить" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Главное меню" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Продолжить" })).toBeInTheDocument();
   });
 });

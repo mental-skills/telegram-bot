@@ -52,6 +52,7 @@ ActionKind = Literal[
     "repeat",
     "main_menu",
     "open_bot",
+    "open_scenario",
 ]
 
 
@@ -60,6 +61,7 @@ class ActionResponse(BaseModel):
     label: str
     kind: ActionKind
     href: str | None = None
+    scenario_id: str | None = None
 
 
 class ScreenResponse(BaseModel):
@@ -73,7 +75,7 @@ class ScreenResponse(BaseModel):
     is_completion: bool
     is_mini_app_boundary: bool = False
     stage: int
-    stage_count: int = 6
+    stage_count: int = 8
 
 
 class TrainingResponse(BaseModel):

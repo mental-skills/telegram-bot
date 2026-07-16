@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { getBootstrap, restartTraining, setAge, startOrContinue } from "../api/client";
+import { getBootstrap, restartTraining, setAge, startOrContinue, startSituation } from "../api/client";
 import type { Bootstrap, Situation, Training } from "../api/contracts";
 import { AppShell, PageTitle } from "../components/AppShell";
 import { BrandLogo } from "../components/BrandLogo";
@@ -117,10 +117,10 @@ function HomeContent({ data }: { data: Bootstrap }) {
   );
 }
 
-function SituationCard({ situation, current }: { situation: Situation; current: boolean }) {
+function SituationCard({ situation, current, onOpen }: { situation: Situation; current: boolean; onOpen?: () => void }) {
   const labels = { not_started: "Не начата", in_progress: "В процессе", completed: "Завершена" };
   return (
-    <article className={`situation-card ${current ? "current" : ""}`}>
+    <article className={`situation-card ${current ? "current" : ""} ${onOpen ? "interactive" : ""}`} onClick={onOpen}>
       <div className={`status-dot ${situation.status}`}><Icon name={situation.status === "completed" ? "check" : "situations"} size={20} /></div>
       <div>
         <span className="card-kicker">{labels[situation.status]}</span>
@@ -132,14 +132,23 @@ function SituationCard({ situation, current }: { situation: Situation; current: 
 }
 
 export function SituationsPage() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: startSituation,
+    onSuccess: (training) => {
+      queryClient.setQueryData(["training"], training);
+      navigate("/training");
+    }
+  });
   return <BootstrapState>{(data) => (
-    <AppShell title="Ситуации">
-      <PageTitle eyebrow="Доступно сейчас">Две реальные футбольные ситуации</PageTitle>
-      <div className="card-list">
-        {data.progress.situations.map((item) => <SituationCard key={item.scenario_id} situation={item} current={item.scenario_id === data.progress.current_scenario_id} />)}
-      </div>
-    </AppShell>
-  )}</BootstrapState>;
+      <AppShell title="Ситуации">
+        <PageTitle eyebrow="Доступно сейчас">Семь футбольных ситуаций</PageTitle>
+        <div className="card-list">
+          {data.progress.situations.map((item) => <SituationCard key={item.scenario_id} situation={item} current={item.scenario_id === data.progress.current_scenario_id} onOpen={() => mutation.mutate(item.scenario_id)} />)}
+        </div>
+      </AppShell>
+    )}</BootstrapState>;
 }
 
 export function ProgressPage() {
@@ -155,7 +164,7 @@ export function ProgressPage() {
             {data.progress.situations.map((item, index) => (
               <div key={item.scenario_id} className="step-wrap">
                 <span className={`step ${item.status}`}>{item.status === "completed" ? <Icon name="check" size={18} /> : index + 1}</span>
-                {index === 0 ? <span className={`step-line ${item.status === "completed" ? "complete" : ""}`} /> : null}
+                {index < data.progress.situations.length - 1 ? <span className={`step-line ${item.status === "completed" ? "complete" : ""}`} /> : null}
               </div>
             ))}
           </div>

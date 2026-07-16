@@ -11,6 +11,31 @@
       "scenario_id": "PREMATCH_INSTRUCTIONS_02",
       "path": "PREMATCH_INSTRUCTIONS_02.json",
       "enabled": true
+    },
+    {
+      "scenario_id": "CHILD_ERROR_LOOKS_AT_PARENT_03",
+      "path": "CHILD_ERROR_LOOKS_AT_PARENT_03.json",
+      "enabled": true
+    },
+    {
+      "scenario_id": "CHILD_LEFT_ON_BENCH_04",
+      "path": "CHILD_LEFT_ON_BENCH_04.json",
+      "enabled": true
+    },
+    {
+      "scenario_id": "DISPUTED_REFEREE_DECISION_05",
+      "path": "DISPUTED_REFEREE_DECISION_05.json",
+      "enabled": true
+    },
+    {
+      "scenario_id": "CHILD_SILENT_AFTER_DEFEAT_06",
+      "path": "CHILD_SILENT_AFTER_DEFEAT_06.json",
+      "enabled": true
+    },
+    {
+      "scenario_id": "PARENT_RESPONSE_AFTER_VICTORY_07",
+      "path": "PARENT_RESPONSE_AFTER_VICTORY_07.json",
+      "enabled": true
     }
   ]
 }

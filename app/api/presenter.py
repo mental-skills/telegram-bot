@@ -14,8 +14,7 @@ from app.engine.types import ScenarioScreen, ScreenButton
 from app.mini_app.visuals import MiniAppVisualAsset
 from app.services.progress import ProgressScreen, ProgressSummary
 
-MINI_APP_SCENARIO_ID = "PREMATCH_GAME_REFUSAL_01"
-BOUNDARY_SCENARIO_ID = "PREMATCH_INSTRUCTIONS_02"
+MODULE_COMPLETION_NODE_ID = "module_completion"
 
 
 def present_training(
@@ -23,11 +22,6 @@ def present_training(
     runtime: ApplicationRuntime,
 ) -> TrainingResponse:
     screen = progress.screen
-    is_boundary = screen.scenario_id == BOUNDARY_SCENARIO_ID
-    if is_boundary:
-        engine = runtime.scenario_registry.get_engine(BOUNDARY_SCENARIO_ID)
-        screen = engine.render(engine.entry_node, progress.user.age_group)  # type: ignore[arg-type]
-
     visual_asset = runtime.mini_app_visuals.get_screen_visual(
         screen.scenario_id,
         screen.node_id,
@@ -35,7 +29,15 @@ def present_training(
     )
     visual = present_visual(visual_asset) if visual_asset else None
 
-    actions = _boundary_actions(runtime) if is_boundary else _screen_actions(screen)
+    is_module_completion = (
+        screen.node_id == MODULE_COMPLETION_NODE_ID
+        and progress.trainer_session.module_id == runtime.scenario_registry.module_id
+    )
+    actions = (
+        _module_completion_actions(runtime)
+        if is_module_completion
+        else _screen_actions(screen)
+    )
     bundle = runtime.scenario_registry.bundles[screen.scenario_id]
     return TrainingResponse(
         scenario_id=screen.scenario_id,
@@ -53,7 +55,7 @@ def present_training(
             visual=visual,
             actions=actions,
             is_completion=screen.is_completion,
-            is_mini_app_boundary=is_boundary,
+            is_mini_app_boundary=False,
             stage=_screen_stage(screen),
         ),
     )
@@ -104,34 +106,35 @@ def _present_button(screen: ScenarioScreen, button: ScreenButton) -> ActionRespo
     return ActionResponse(id=button.id, label=button.label, kind=kind)
 
 
-def _boundary_actions(runtime: ApplicationRuntime) -> list[ActionResponse]:
+def _module_completion_actions(runtime: ApplicationRuntime) -> list[ActionResponse]:
     actions = [
+        ActionResponse(
+            id=f"open_{scenario_id.lower()}",
+            label=bundle.scenario.short_title,
+            kind="open_scenario",
+            scenario_id=scenario_id,
+        )
+        for scenario_id, bundle in runtime.scenario_registry.bundles.items()
+    ]
+    actions.append(
         ActionResponse(
             id="home",
             label=runtime.ui_texts.back_to_menu,
             kind="main_menu",
         )
-    ]
-    username = runtime.settings.telegram_bot_username.lstrip("@")
-    if username:
-        actions.append(
-            ActionResponse(
-                id="open_bot",
-                label="Открыть в Telegram-боте",
-                kind="open_bot",
-                href=f"https://t.me/{username}",
-            )
-        )
+    )
     return actions
 
 
 def _screen_stage(screen: ScenarioScreen) -> int:
+    if screen.node_type == "outcome":
+        return 4 if screen.node_id.endswith("_repeated") else 3
+    if screen.node_type == "tool":
+        return 6 if screen.node_id == "summary_main" else 7
     return {
         "info": 1,
         "choice": 2,
-        "outcome": 3,
-        "advice": 4,
-        "tool": 5,
-        "completion": 6,
-        "emergency": 6,
+        "advice": 5,
+        "completion": 8,
+        "emergency": 7,
     }[screen.node_type]

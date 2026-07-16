@@ -4,13 +4,15 @@ export type ActionKind =
   | "next_scenario"
   | "repeat"
   | "main_menu"
-  | "open_bot";
+  | "open_bot"
+  | "open_scenario";
 
 export interface Action {
   id: string;
   label: string;
   kind: ActionKind;
   href: string | null;
+  scenario_id?: string | null;
 }
 
 export interface MiniAppVisual {

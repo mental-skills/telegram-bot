@@ -174,22 +174,43 @@ def make_service(registry: ScenarioRegistry) -> tuple[ProgressService, FakeProgr
     return service, progress_repo
 
 
+async def advance_progress(
+    service: ProgressService,
+    progress: ProgressScreen,
+    option_id: str,
+) -> ProgressScreen:
+    payload = CallbackPayload(
+        progress.trainer_session.id,
+        progress.trainer_session.current_revision,
+        option_id,
+    )
+    result = await service.handle_callback(123, payload.pack())
+    assert result.status == "ok"
+    assert result.progress_screen is not None
+    return result.progress_screen
+
+
+async def complete_current_scenario(
+    service: ProgressService,
+    progress: ProgressScreen,
+) -> ProgressScreen:
+    for option_id in ("continue", "a", "a2"):
+        progress = await advance_progress(service, progress, option_id)
+    for _ in range(24):
+        if progress.screen.node_id == "completion":
+            break
+        assert progress.screen.buttons
+        progress = await advance_progress(service, progress, progress.screen.buttons[0].id)
+    else:
+        raise AssertionError(f"completion not reached: {progress.screen.scenario_id}")
+    assert progress.trainer_session.status == "completed"
+    return progress
+
+
 async def complete_scenario_01(service: ProgressService) -> ProgressScreen:
     progress = await service.start_or_continue(123)
     assert progress is not None
-    for option_id in ("continue", "a", "a2", "continue", "continue", "continue", "continue"):
-        payload = CallbackPayload(
-            progress.trainer_session.id,
-            progress.trainer_session.current_revision,
-            option_id,
-        )
-        result = await service.handle_callback(123, payload.pack())
-        assert result.status == "ok"
-        assert result.progress_screen is not None
-        progress = result.progress_screen
-    assert progress.screen.node_id == "completion"
-    assert progress.trainer_session.status == "completed"
-    return progress
+    return await complete_current_scenario(service, progress)
 
 
 @pytest.mark.asyncio
@@ -390,9 +411,49 @@ async def test_progress_summary_contains_only_enabled_situations(
     await service.set_age(123, "9-12")
     await service.start_or_continue(123)
     summary = await service.get_progress_summary(123)
-    assert summary.available_count == 2
+    assert summary.available_count == 7
     assert summary.completed_count == 0
     assert [item.scenario_id for item in summary.situations] == [
         "PREMATCH_GAME_REFUSAL_01",
         "PREMATCH_INSTRUCTIONS_02",
+        "CHILD_ERROR_LOOKS_AT_PARENT_03",
+        "CHILD_LEFT_ON_BENCH_04",
+        "DISPUTED_REFEREE_DECISION_05",
+        "CHILD_SILENT_AFTER_DEFEAT_06",
+        "PARENT_RESPONSE_AFTER_VICTORY_07",
     ]
+
+
+@pytest.mark.asyncio
+async def test_full_route_reaches_all_seven_and_module_completion(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    service, _ = make_service(scenario_registry)
+    await service.set_age(123, "9-12")
+    progress = await service.start_or_continue(123)
+    assert progress is not None
+    visited: list[str] = []
+    for expected_id in scenario_registry.enabled_order:
+        assert progress.trainer_session.scenario_id == expected_id
+        visited.append(expected_id)
+        progress = await complete_current_scenario(service, progress)
+        progress = await advance_progress(service, progress, "next")
+    assert tuple(visited) == scenario_registry.enabled_order
+    assert progress.screen.node_id == "module_completion"
+    summary = await service.get_progress_summary(123)
+    assert summary.completed_count == 7
+
+
+@pytest.mark.asyncio
+async def test_every_situation_can_start_standalone_without_route_progress(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    service, _ = make_service(scenario_registry)
+    await service.set_age(123, "9-12")
+    for scenario_id in scenario_registry.enabled_order:
+        standalone = await service.start_or_continue_standalone(123, scenario_id)
+        assert standalone is not None
+        assert standalone.trainer_session.module_id == STANDALONE_MODULE_ID
+        assert standalone.trainer_session.scenario_id == scenario_id
+    summary = await service.get_progress_summary(123)
+    assert summary.completed_count == 0

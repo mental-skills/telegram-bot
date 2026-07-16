@@ -19,7 +19,8 @@ async function expectContentClearsActionPanel(page: import("@playwright/test").P
 
 test("live Docker visual acceptance flow", async ({ page }) => {
   const initData = process.env.E2E_INIT_DATA;
-  if (!initData) throw new Error("E2E_INIT_DATA is required for the live Docker test");
+  test.skip(!initData, "E2E_INIT_DATA is required for the live Docker test");
+  if (!initData) return;
   await page.route("https://telegram.org/js/telegram-web-app.js", (route) =>
     route.fulfill({ contentType: "application/javascript", body: "" })
   );
@@ -88,7 +89,7 @@ test("live Docker visual acceptance flow", async ({ page }) => {
 
   await page.getByRole("button", { name: "Продолжить маршрут" }).click();
   await expect(page.getByText("Ситуация 1 из 7")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Я не хочу выходить на игру" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Не хочу играть сегодня" })).toBeVisible();
   await waitForPaint(page);
   await page.screenshot({ path: "../docs/screenshots/mini-app-polish-scenario-01.png" });
 
@@ -96,7 +97,7 @@ test("live Docker visual acceptance flow", async ({ page }) => {
   await expect(page.getByText("Что вы сделаете?")).toBeVisible();
   await page.screenshot({ path: "../docs/screenshots/mini-app-v2-choice.png", fullPage: true });
 
-  await page.getByRole("button", { name: "Все волнуются. Выходи" }).click();
+  await page.getByRole("button", { name: "Все волнуются. Начни с разминки." }).click();
   await page.getByRole("button", { name: "Только не подведи команду" }).click();
   await expect(page.getByText("Что может произойти")).toBeVisible();
   await expect(page.getByLabel("Решение и расходящиеся последствия")).toBeVisible();
@@ -109,6 +110,8 @@ test("live Docker visual acceptance flow", async ({ page }) => {
   await expect(page.getByLabel("Решение и расходящиеся последствия")).toBeVisible();
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
 
+  await page.getByRole("button", { name: "Продолжить" }).click();
+  await expect(page.getByText("Если такая реакция повторяется")).toBeVisible();
   await page.getByRole("button", { name: "Продолжить" }).click();
   await expect(page.getByText("Практический совет")).toBeVisible();
   await expect(page.getByLabel("Три шага практического инструмента")).toHaveCount(0);
@@ -126,14 +129,17 @@ test("live Docker visual acceptance flow", async ({ page }) => {
   await page.getByRole("button", { name: "Продолжить" }).click();
   await expect(page.getByText("Правило трёх вопросов")).toBeVisible();
   await expect(page.getByLabel("Три шага практического инструмента")).toBeVisible();
-  await page.getByRole("button", { name: "Продолжить" }).click();
-  await expect(page.getByText("Ситуация завершена.", { exact: false })).toBeVisible();
+  for (let index = 0; index < 8; index += 1) {
+    if (await page.getByText("Ситуация пройдена.", { exact: false }).count()) break;
+    await page.getByRole("button", { name: "Продолжить" }).click();
+  }
+  await expect(page.getByText("Ситуация пройдена.", { exact: false })).toBeVisible();
   await expect(page.getByLabel("Нейронная сеть завершения")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   expect(await page.evaluate(() => window.scrollX)).toBe(0);
   await expect(page.getByText("Перейти к ситуации 2", { exact: true })).toHaveCount(1);
-  await expect(page.getByRole("button", { name: "Повторить" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "На главную", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Повторить ситуацию" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Вернуться на главную", exact: true })).toBeVisible();
   await expectContentClearsActionPanel(page);
   await page.evaluate(() => window.scrollTo(0, 0));
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
@@ -141,20 +147,20 @@ test("live Docker visual acceptance flow", async ({ page }) => {
   expect(await page.locator(".training-content").evaluate((element) => element.getBoundingClientRect().left)).toBe(0);
   await page.screenshot({ path: "../docs/screenshots/mini-app-final-completion.png" });
   await page.reload();
-  await expect(page.getByText("Ситуация завершена.", { exact: false })).toBeVisible();
+  await expect(page.getByText("Ситуация пройдена.", { exact: false })).toBeVisible();
   await expect(page.getByLabel("Нейронная сеть завершения")).toBeVisible();
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
 
-  await page.getByRole("button", { name: "На главную", exact: true }).click();
+  await page.getByRole("button", { name: "Вернуться на главную", exact: true }).click();
   await expect(page.getByRole("navigation", { name: "Главное меню" })).toBeVisible();
   await page.getByRole("link", { name: "Прогресс" }).click();
-  await expect(page.getByText("Пройдено 1 из 2 доступных")).toBeVisible();
+  await expect(page.getByText("Пройдено 1 из 7 доступных")).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, 0));
   await waitForPaint(page);
   await page.screenshot({ path: "../docs/screenshots/mini-app-final-progress.png" });
 
   await page.goto("/training");
-  await expect(page.getByText("Ситуация завершена.", { exact: false })).toBeVisible();
+  await expect(page.getByText("Ситуация пройдена.", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "Перейти к ситуации 2" }).click();
   await expect(page.getByText("Ситуация 2 из 7")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Последние инструкции перед стартом" })).toBeVisible();

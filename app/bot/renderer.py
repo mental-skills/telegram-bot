@@ -23,7 +23,7 @@ def format_screen_text(screen: ScenarioScreen) -> str:
     if screen.text:
         parts.append(screen.text)
     if screen.quote:
-        parts.append(f"<b>Готовая фраза:</b>\n«{screen.quote}»")
+        parts.append(f"<b>Готовая фраза:</b>\n{screen.quote}")
     return "\n\n".join(parts)
 
 

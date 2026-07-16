@@ -33,7 +33,7 @@ def integration_settings() -> Settings:
 
 
 @pytest.mark.asyncio
-async def test_api_route_restore_stale_and_scenario_02_boundary() -> None:
+async def test_api_route_restore_stale_and_continue_to_scenario_02() -> None:
     app = create_api_app(settings=integration_settings())
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
@@ -65,13 +65,25 @@ async def test_api_route_restore_stale_and_scenario_02_boundary() -> None:
         assert stale.status_code == 409
         assert stale.json()["detail"] == "stale"
 
-        for option_id in ("a", "a2", "continue", "continue", "continue", "continue"):
+        for option_id in ("a", "a2"):
             response = await client.post(
                 f"/api/v1/training/sessions/{training['session_id']}/transitions",
                 json={"revision": training["revision"], "option_id": option_id},
             )
             assert response.status_code == 200, response.text
             training = response.json()["training"]
+        for _ in range(24):
+            if training["screen"]["type"] == "completion":
+                break
+            option_id = training["screen"]["actions"][0]["id"]
+            response = await client.post(
+                f"/api/v1/training/sessions/{training['session_id']}/transitions",
+                json={"revision": training["revision"], "option_id": option_id},
+            )
+            assert response.status_code == 200, response.text
+            training = response.json()["training"]
+        else:
+            raise AssertionError("scenario 01 completion was not reached")
         assert training["screen"]["type"] == "completion"
         assert training["screen"]["visual"]["id"] == "premium_completion_network"
         assert "ui_achievement" not in str(training)
@@ -83,12 +95,18 @@ async def test_api_route_restore_stale_and_scenario_02_boundary() -> None:
         assert next_response.status_code == 200
         scenario_02 = next_response.json()["training"]
         assert scenario_02["scenario_id"] == "PREMATCH_INSTRUCTIONS_02"
-        assert scenario_02["screen"]["is_mini_app_boundary"] is True
-        assert all(action["kind"] != "continue" for action in scenario_02["screen"]["actions"])
+        assert scenario_02["screen"]["is_mini_app_boundary"] is False
+        assert any(action["kind"] == "continue" for action in scenario_02["screen"]["actions"])
+
+        standalone = await client.post(
+            "/api/v1/training/situations/CHILD_ERROR_LOOKS_AT_PARENT_03/start-or-continue"
+        )
+        assert standalone.status_code == 200
+        assert standalone.json()["scenario_id"] == "CHILD_ERROR_LOOKS_AT_PARENT_03"
 
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as restored_client:
         await restored_client.post("/api/v1/auth/dev")
         restored = await restored_client.get("/api/v1/training/current")
         assert restored.status_code == 200
         assert restored.json()["scenario_id"] == "PREMATCH_INSTRUCTIONS_02"
-        assert restored.json()["screen"]["is_mini_app_boundary"] is True
+        assert restored.json()["screen"]["is_mini_app_boundary"] is False

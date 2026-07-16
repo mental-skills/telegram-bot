@@ -16,12 +16,17 @@ const bootstrap = {
     home: { id: "football_focus", url: "/football-focus.svg", alt: "Схема поля", kind: "football_focus" }
   },
   progress: {
-    available_count: 2,
+    available_count: 7,
     completed_count: 1,
     current_scenario_id: "PREMATCH_GAME_REFUSAL_01",
     situations: [
       { scenario_id: "PREMATCH_GAME_REFUSAL_01", title: "Я не хочу выходить на игру", estimated_minutes: 8, status: "completed", attempt_no: 1 },
-      { scenario_id: "PREMATCH_INSTRUCTIONS_02", title: "Последние инструкции перед стартом", estimated_minutes: 5, status: "not_started", attempt_no: null }
+      { scenario_id: "PREMATCH_INSTRUCTIONS_02", title: "Последние инструкции перед стартом", estimated_minutes: 8, status: "not_started", attempt_no: null },
+      { scenario_id: "CHILD_ERROR_LOOKS_AT_PARENT_03", title: "Ребёнок ошибается и смотрит на родителя", estimated_minutes: 8, status: "not_started", attempt_no: null },
+      { scenario_id: "CHILD_LEFT_ON_BENCH_04", title: "Тренер оставляет ребёнка в запасе", estimated_minutes: 8, status: "not_started", attempt_no: null },
+      { scenario_id: "DISPUTED_REFEREE_DECISION_05", title: "Судья принимает спорное решение", estimated_minutes: 8, status: "not_started", attempt_no: null },
+      { scenario_id: "CHILD_SILENT_AFTER_DEFEAT_06", title: "После поражения ребёнок не хочет разговаривать", estimated_minutes: 8, status: "not_started", attempt_no: null },
+      { scenario_id: "PARENT_RESPONSE_AFTER_VICTORY_07", title: "После победы: что сказать ребёнку?", estimated_minutes: 8, status: "not_started", attempt_no: null }
     ]
   },
   training: null
@@ -70,7 +75,7 @@ for (const width of [320, 390, 520]) {
     await page.goto("/home");
     await expect(page.getByRole("navigation", { name: "Главное меню" })).toBeVisible();
     await expect(page.getByText("Спокойная поддержка начинается с практики")).toBeVisible();
-    await expect(page.getByText("Пройдено 1 из 2 доступных")).toBeVisible();
+    await expect(page.getByText("Пройдено 1 из 7 доступных")).toBeVisible();
     await expect(page.getByRole("button", { name: "Продолжить маршрут" })).toBeVisible();
     const initialLayout = await page.evaluate(() => {
       const heading = document.querySelector(".page-title-block");
@@ -146,5 +151,12 @@ for (const width of [320, 390, 520]) {
     expect(scaledLayout?.actionClearsNavigation).toBe(true);
     expect(scaledLayout?.navigationClearsSafeArea).toBe(true);
     expect(scaledLayout?.buttonSingleLine).toBe(true);
+
+    await page.getByRole("link", { name: "Прогресс" }).click();
+    await expect(page.getByText("Пройдено 1 из 7 доступных")).toBeVisible();
+    const progressOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth
+    );
+    expect(progressOverflow).toBe(false);
   });
 }

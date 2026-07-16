@@ -208,7 +208,7 @@ class ProgressService:
             situations.append(
                 SituationProgress(
                     scenario_id=scenario_id,
-                    title=bundle.scenario.title,
+                    title=bundle.scenario.short_title,
                     estimated_minutes=bundle.scenario.estimated_minutes,
                     status=status,
                     attempt_no=latest.attempt_no if latest else None,

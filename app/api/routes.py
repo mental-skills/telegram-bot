@@ -11,12 +11,7 @@ from app.api.dependencies import (
     SessionManagerDependency,
     TelegramUserDependency,
 )
-from app.api.presenter import (
-    BOUNDARY_SCENARIO_ID,
-    present_progress,
-    present_training,
-    present_visual,
-)
+from app.api.presenter import present_progress, present_training, present_visual
 from app.api.schemas import (
     AgeRequest,
     AuthResponse,
@@ -31,6 +26,7 @@ from app.api.schemas import (
     UiResponse,
     UserResponse,
 )
+from app.core.errors import ContentValidationError
 
 router = APIRouter()
 
@@ -199,12 +195,6 @@ async def transition(
     current = await service.get_current_progress(telegram_user_id)
     if current is None or current.trainer_session.id != session_id:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="stale")
-    if current.trainer_session.scenario_id == BOUNDARY_SCENARIO_ID:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="scenario_02_intro_only",
-        )
-
     result = await service.advance(
         telegram_user_id=telegram_user_id,
         session_id=session_id,
@@ -221,6 +211,28 @@ async def transition(
         status=result.status,
         training=present_training(result.progress_screen, runtime),
     )
+
+
+@router.post(
+    "/api/v1/training/situations/{scenario_id}/start-or-continue",
+    response_model=TrainingResponse,
+)
+async def start_or_continue_situation(
+    scenario_id: str,
+    telegram_user_id: TelegramUserDependency,
+    service: ProgressServiceDependency,
+    runtime: RuntimeDependency,
+) -> TrainingResponse:
+    try:
+        current = await service.start_or_continue_standalone(telegram_user_id, scenario_id)
+    except ContentValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="scenario_unavailable",
+        ) from exc
+    if current is None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="age_required")
+    return present_training(current, runtime)
 
 
 @router.post("/api/v1/training/restart", response_model=TrainingResponse)

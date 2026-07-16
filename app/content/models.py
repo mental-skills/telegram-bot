@@ -59,6 +59,7 @@ class Scenario(BaseModel):
     sport: Literal["football"]
     language: Literal["ru"]
     title: str
+    short_title: str
     stage: Literal["before_match", "during_match", "after_match"]
     estimated_minutes: int | None = None
     age_groups: list[AgeGroup]
