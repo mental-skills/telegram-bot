@@ -35,9 +35,7 @@ def mini_app_keyboard(
         return InlineKeyboardMarkup(inline_keyboard=[])
     label = "Продолжить маршрут" if continue_route else "Открыть ментальный спортзал"
     return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text=label, web_app=WebAppInfo(url=mini_app_url))]
-        ]
+        inline_keyboard=[[InlineKeyboardButton(text=label, web_app=WebAppInfo(url=mini_app_url))]]
     )
 
 

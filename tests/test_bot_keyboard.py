@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import pytest
-from aiogram.types import ReplyKeyboardRemove
 
 from app.bot.keyboards import main_menu_keyboard, mini_app_keyboard
-from app.bot.renderer import send_start_card
+from app.bot.renderer import BOT_WELCOME_TEXT, send_start_card
 from app.content.repository import ContentRepository
 
 
@@ -33,32 +33,68 @@ def test_active_route_uses_only_continue_label() -> None:
     assert keyboard.inline_keyboard[0][0].text == "Продолжить маршрут"
 
 
-class _SentMessage:
-    def __init__(self) -> None:
-        self.edited_markup: Any = None
+class _Bot:
+    def __init__(self, *, fail_photo: bool = False) -> None:
+        self.fail_photo = fail_photo
+        self.photos: list[dict[str, Any]] = []
 
-    async def edit_reply_markup(self, *, reply_markup: Any) -> None:
-        self.edited_markup = reply_markup
+    async def send_photo(self, **kwargs: Any) -> None:
+        if self.fail_photo:
+            raise RuntimeError("photo unavailable")
+        self.photos.append(kwargs)
+
+
+class _Chat:
+    id = 123
 
 
 class _Message:
-    def __init__(self) -> None:
+    def __init__(self, bot: _Bot) -> None:
+        self.bot = bot
+        self.chat = _Chat()
         self.answers: list[tuple[str, Any]] = []
-        self.sent = _SentMessage()
 
-    async def answer(self, text: str, *, reply_markup: Any = None) -> _SentMessage:
+    async def answer(self, text: str, *, reply_markup: Any = None) -> None:
         self.answers.append((text, reply_markup))
-        return self.sent
 
 
 @pytest.mark.asyncio
-async def test_start_removes_legacy_reply_keyboard_and_keeps_one_greeting() -> None:
-    message = _Message()
+async def test_start_sends_one_photo_with_caption_and_web_app(
+    asset_repository: Any,
+) -> None:
+    bot = _Bot()
+    message = _Message(bot)
     keyboard = mini_app_keyboard("https://mini-app.example.com")
 
-    await send_start_card(message, keyboard)  # type: ignore[arg-type]
+    await send_start_card(message, asset_repository, keyboard)  # type: ignore[arg-type]
 
-    assert len(message.answers) == 1
-    assert message.answers[0][0].startswith("Mental Skills — ментальный спортзал")
-    assert isinstance(message.answers[0][1], ReplyKeyboardRemove)
-    assert message.sent.edited_markup == keyboard
+    assert len(bot.photos) == 1
+    assert not message.answers
+    sent = bot.photos[0]
+    assert sent["caption"] == BOT_WELCOME_TEXT
+    assert "Семь ситуаций до, во время и после матча." in sent["caption"]
+    assert "не ставит диагнозы" in sent["caption"]
+    assert sent["reply_markup"] == keyboard
+    assert Path(sent["photo"].path).name == "brand_logo_telegram_welcome.png"
+
+
+@pytest.mark.asyncio
+async def test_start_photo_failure_uses_same_text_and_button_fallback(
+    asset_repository: Any,
+) -> None:
+    bot = _Bot(fail_photo=True)
+    message = _Message(bot)
+    keyboard = mini_app_keyboard("https://mini-app.example.com")
+
+    await send_start_card(message, asset_repository, keyboard)  # type: ignore[arg-type]
+
+    assert not bot.photos
+    assert message.answers == [(BOT_WELCOME_TEXT, keyboard)]
+
+
+def test_welcome_asset_is_runtime_and_allowed_for_bot_start(asset_repository: Any) -> None:
+    asset = asset_repository.get_runtime_asset("brand_logo_telegram_welcome")
+    assert asset.runtime is True
+    assert "bot_start" in asset.allowed_roles
+    assert "about_project" in asset.allowed_roles
+    assert asset.path.name == "brand_logo_telegram_welcome.png"

@@ -72,7 +72,8 @@ def test_completion_api_payload_excludes_editorial_fixation(
     for node_id in ("completion", "module_completion"):
         screen = engine.render(node_id, "9-12")
         response = present_training(
-            ProgressScreen(user=user, trainer_session=session, screen=screen), runtime
+            ProgressScreen(user=user, trainer_session=session, screen=screen),
+            runtime,  # type: ignore[arg-type]
         )
         payload = json.dumps(response.model_dump(), ensure_ascii=False)
         assert "Итоговая фиксация" not in payload

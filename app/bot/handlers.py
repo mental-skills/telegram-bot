@@ -5,6 +5,7 @@ from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.assets.repository import AssetRepository
 from app.bot.keyboards import (
     main_menu_keyboard,
     mini_app_keyboard,
@@ -36,6 +37,7 @@ def _progress_service(
 async def start_handler(
     message: Message,
     db_session: AsyncSession,
+    asset_repository: AssetRepository,
     ui_texts: UiTexts,
     scenario_registry: ScenarioRegistry,
     privacy_version: str,
@@ -46,6 +48,7 @@ async def start_handler(
     progress = await service.get_current_progress(user.telegram_user_id)
     await send_start_card(
         message=message,
+        asset_repository=asset_repository,
         reply_markup=main_menu_keyboard(
             ui_texts,
             has_age=user.age_group is not None,
@@ -56,9 +59,14 @@ async def start_handler(
 
 
 @router.message(Command("app"))
-async def app_handler(message: Message, mini_app_url: str) -> None:
+async def app_handler(
+    message: Message,
+    asset_repository: AssetRepository,
+    mini_app_url: str,
+) -> None:
     await send_app_launcher(
         message,
+        asset_repository,
         mini_app_keyboard(mini_app_url),
     )
 
@@ -103,11 +111,13 @@ async def reset_callback_handler(
 @router.callback_query(F.data.startswith("a:"))
 async def age_handler(
     callback: CallbackQuery,
+    asset_repository: AssetRepository,
     mini_app_url: str,
 ) -> None:
     if isinstance(callback.message, Message):
         await send_app_launcher(
             callback.message,
+            asset_repository,
             mini_app_keyboard(mini_app_url),
         )
     await callback.answer()
@@ -116,6 +126,7 @@ async def age_handler(
 @router.callback_query(F.data.startswith("m:"))
 async def menu_handler(
     callback: CallbackQuery,
+    asset_repository: AssetRepository,
     ui_texts: UiTexts,
     mini_app_url: str,
 ) -> None:
@@ -127,6 +138,7 @@ async def menu_handler(
     # menu action safely to the single Mini App entry point.
     await send_app_launcher(
         message,
+        asset_repository,
         main_menu_keyboard(ui_texts, has_age=False, mini_app_url=mini_app_url),
     )
     await callback.answer()
@@ -135,11 +147,13 @@ async def menu_handler(
 @router.callback_query(F.data.startswith("s:"))
 async def scenario_callback_handler(
     callback: CallbackQuery,
+    asset_repository: AssetRepository,
     mini_app_url: str,
 ) -> None:
     if isinstance(callback.message, Message):
         await send_app_launcher(
             callback.message,
+            asset_repository,
             mini_app_keyboard(mini_app_url),
         )
     await callback.answer()
@@ -148,10 +162,12 @@ async def scenario_callback_handler(
 @router.message()
 async def fallback_message_handler(
     message: Message,
+    asset_repository: AssetRepository,
     ui_texts: UiTexts,
     mini_app_url: str,
 ) -> None:
     await send_app_launcher(
         message,
+        asset_repository,
         main_menu_keyboard(ui_texts, False, mini_app_url),
     )

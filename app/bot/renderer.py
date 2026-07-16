@@ -8,7 +8,6 @@ from aiogram.types import (
     FSInputFile,
     InlineKeyboardMarkup,
     Message,
-    ReplyKeyboardRemove,
 )
 
 from app.assets.repository import AssetRepository
@@ -21,7 +20,7 @@ logger = logging.getLogger(__name__)
 TELEGRAM_CAPTION_LIMIT = 1024
 
 BOT_WELCOME_TEXT = (
-    "Mental Skills — ментальный спортзал для родителей юных футболистов\n\n"
+    "Mental Skills — ментальный спортзал для родителей юных футболистов.\n\n"
     "Семь ситуаций до, во время и после матча.\n"
     "Вы выбираете реакцию, видите возможные последствия и получаете практический совет "
     "и готовую фразу.\n\n"
@@ -44,22 +43,53 @@ def format_screen_text(screen: ScenarioScreen) -> str:
 
 async def send_start_card(
     message: Message,
+    asset_repository: AssetRepository,
     reply_markup: InlineKeyboardMarkup,
 ) -> None:
-    """Send one compact greeting and remove any legacy reply keyboard."""
-    sent = await message.answer(BOT_WELCOME_TEXT, reply_markup=ReplyKeyboardRemove())
-    try:
-        await sent.edit_reply_markup(reply_markup=reply_markup)
-    except Exception as exc:
-        logger.info("start_inline_keyboard_fallback error=%s", exc.__class__.__name__)
-        await message.answer(BOT_APP_PROMPT, reply_markup=reply_markup)
+    """Send the branded welcome as one photo message with its WebApp button."""
+    await _send_branded_message(
+        message=message,
+        asset_repository=asset_repository,
+        caption=BOT_WELCOME_TEXT,
+        reply_markup=reply_markup,
+    )
 
 
 async def send_app_launcher(
     message: Message,
+    asset_repository: AssetRepository,
     reply_markup: InlineKeyboardMarkup,
 ) -> None:
-    await message.answer(BOT_APP_PROMPT, reply_markup=reply_markup)
+    await _send_branded_message(
+        message=message,
+        asset_repository=asset_repository,
+        caption=BOT_APP_PROMPT,
+        reply_markup=reply_markup,
+    )
+
+
+async def _send_branded_message(
+    message: Message,
+    asset_repository: AssetRepository,
+    caption: str,
+    reply_markup: InlineKeyboardMarkup,
+) -> None:
+    if message.bot is None:
+        return
+    try:
+        asset = asset_repository.get_runtime_asset("brand_logo_telegram_welcome")
+        await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=FSInputFile(asset.path),
+            caption=caption,
+            reply_markup=reply_markup,
+        )
+    except Exception as exc:
+        logger.warning(
+            "welcome_media_fallback asset_id=brand_logo_telegram_welcome error=%s",
+            exc.__class__.__name__,
+        )
+        await message.answer(caption, reply_markup=reply_markup)
 
 
 async def send_screen(
