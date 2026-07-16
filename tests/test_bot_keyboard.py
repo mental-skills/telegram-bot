@@ -72,10 +72,12 @@ async def test_start_sends_one_photo_with_caption_and_web_app(
     assert not message.answers
     sent = bot.photos[0]
     assert sent["caption"] == BOT_WELCOME_TEXT
-    assert "Семь ситуаций до, во время и после матча." in sent["caption"]
-    assert "не ставит диагнозы" in sent["caption"]
+    assert "7 ситуаций до, во время и после матча:" in sent["caption"]
+    assert "Без диагнозов и оценок родительских качеств." in sent["caption"]
     assert sent["reply_markup"] == keyboard
     assert Path(sent["photo"].path).name == "brand_logo_telegram_welcome.png"
+    asset = asset_repository.get_runtime_asset("brand_logo_telegram_welcome")
+    assert (asset.width_px, asset.height_px) == (1200, 300)
 
 
 @pytest.mark.asyncio
