@@ -250,24 +250,6 @@
       "format": "PNG",
       "source": "latest_user_upload"
     },
-    "brand_logo_telegram_welcome": {
-      "title": "Compact Telegram welcome logo",
-      "purpose": "Compact bot welcome banner using the approved horizontal logo.",
-      "runtime": true,
-      "allowed_roles": [
-        "bot_start",
-        "about_project"
-      ],
-      "alt": "Approved Mental Skills horizontal logo centered on a black background.",
-      "path": "assets/runtime/brand_logo_telegram_welcome.png",
-      "kind": "runtime_photo",
-      "sha256": "bf948951d6851df309baf62295ccc3f4dba959429ccd29b25333627a80d2b349",
-      "file_size_bytes": 69278,
-      "width_px": 1200,
-      "height_px": 300,
-      "format": "PNG",
-      "source": "derived_from_approved_runtime_asset"
-    },
     "runtime_assets_contact_sheet": {
       "title": "Карта runtime-ассетов",
       "purpose": "Быстрый визуальный обзор карточек и их asset_id для разработчика.",

@@ -72,12 +72,15 @@ async def test_start_sends_one_photo_with_caption_and_web_app(
     assert not message.answers
     sent = bot.photos[0]
     assert sent["caption"] == BOT_WELCOME_TEXT
-    assert "7 ситуаций до, во время и после матча:" in sent["caption"]
-    assert "Без диагнозов и оценок родительских качеств." in sent["caption"]
+    assert sent["caption"] == BOT_WELCOME_TEXT
+    assert (
+        "7 ситуаций до, во время и после матча: выберите реакцию, оцените возможные последствия "
+        in sent["caption"]
+    )
     assert sent["reply_markup"] == keyboard
-    assert Path(sent["photo"].path).name == "brand_logo_telegram_welcome.png"
-    asset = asset_repository.get_runtime_asset("brand_logo_telegram_welcome")
-    assert (asset.width_px, asset.height_px) == (1200, 300)
+    assert Path(sent["photo"].path).name == "brand_logo_horizontal.png"
+    asset = asset_repository.get_runtime_asset("brand_logo_horizontal")
+    assert (asset.width_px, asset.height_px) == (1448, 1086)
 
 
 @pytest.mark.asyncio
@@ -95,8 +98,8 @@ async def test_start_photo_failure_uses_same_text_and_button_fallback(
 
 
 def test_welcome_asset_is_runtime_and_allowed_for_bot_start(asset_repository: Any) -> None:
-    asset = asset_repository.get_runtime_asset("brand_logo_telegram_welcome")
+    asset = asset_repository.get_runtime_asset("brand_logo_horizontal")
     assert asset.runtime is True
     assert "bot_start" in asset.allowed_roles
     assert "about_project" in asset.allowed_roles
-    assert asset.path.name == "brand_logo_telegram_welcome.png"
+    assert asset.path.name == "brand_logo_horizontal.png"

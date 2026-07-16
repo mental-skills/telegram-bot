@@ -21,9 +21,8 @@ TELEGRAM_CAPTION_LIMIT = 1024
 
 BOT_WELCOME_TEXT = (
     "Mental Skills — ментальный спортзал для родителей юных футболистов.\n\n"
-    "7 ситуаций до, во время и после матча: выберите реакцию, увидьте возможные последствия "
-    "и получите практический совет и готовую фразу.\n\n"
-    "Без диагнозов и оценок родительских качеств."
+    "7 ситуаций до, во время и после матча: выберите реакцию, оцените возможные последствия "
+    "и получите практический совет и готовую фразу."
 )
 
 BOT_APP_PROMPT = "Откройте ментальный спортзал в Mini App."
@@ -76,7 +75,7 @@ async def _send_branded_message(
     if message.bot is None:
         return
     try:
-        asset = asset_repository.get_runtime_asset("brand_logo_telegram_welcome")
+        asset = asset_repository.get_runtime_asset("brand_logo_horizontal")
         await message.bot.send_photo(
             chat_id=message.chat.id,
             photo=FSInputFile(asset.path),
@@ -85,7 +84,7 @@ async def _send_branded_message(
         )
     except Exception as exc:
         logger.warning(
-            "welcome_media_fallback asset_id=brand_logo_telegram_welcome error=%s",
+            "welcome_media_fallback asset_id=brand_logo_horizontal error=%s",
             exc.__class__.__name__,
         )
         await message.answer(caption, reply_markup=reply_markup)
