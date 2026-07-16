@@ -172,6 +172,9 @@ def _completion_actions(block: Block) -> tuple[str, list[str]]:
     primary = ""
     secondary: list[str] = []
     for line in block.body:
+        # Internal editorial fixation stays in Markdown but never enters runtime JSON.
+        if line.strip() == "# Итоговая фиксация":
+            break
         primary_match = re.match(r"^\*\*Основная кнопка:\*\*\s*(.+?)\.?\s{0,2}$", line)
         secondary_match = re.match(r"^\*\*Дополнительные действия:\*\*\s*(.+?)\.?\s{0,2}$", line)
         if primary_match:
@@ -182,6 +185,8 @@ def _completion_actions(block: Block) -> tuple[str, list[str]]:
             body.append(line)
     if not primary or len(secondary) != 2:
         raise ValueError(f"Incomplete completion actions: {block.title}")
+    while body and (not body[-1].strip() or body[-1].strip() == "---"):
+        body.pop()
     return _plain_text(body), [primary, *secondary]
 
 
