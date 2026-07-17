@@ -11,6 +11,7 @@ from app.content.repository import ContentRepository
 from app.core.config import Settings
 from app.db.session import create_sessionmaker
 from app.mini_app.visuals import MiniAppVisualRepository
+from app.modules.identity import CURRENT_MODULE, ModuleIdentity
 
 
 @dataclass(frozen=True)
@@ -19,6 +20,7 @@ class ApplicationRuntime:
     asset_repository: AssetRepository
     ui_texts: UiTexts
     scenario_registry: ScenarioRegistry
+    module_identity: ModuleIdentity
     mini_app_visuals: MiniAppVisualRepository
     sessionmaker: async_sessionmaker[AsyncSession]
 
@@ -47,6 +49,7 @@ def build_runtime(settings: Settings) -> ApplicationRuntime:
         asset_repository=asset_repository,
         continue_label=ui_texts.continue_,
     )
+    CURRENT_MODULE.validate_registry(registry.module_id)
     mini_app_visuals = MiniAppVisualRepository(
         manifest_path=settings.mini_app_asset_manifest_path,
         presentation_path=settings.mini_app_visuals_path,
@@ -57,6 +60,7 @@ def build_runtime(settings: Settings) -> ApplicationRuntime:
         asset_repository=asset_repository,
         ui_texts=ui_texts,
         scenario_registry=registry,
+        module_identity=CURRENT_MODULE,
         mini_app_visuals=mini_app_visuals,
         sessionmaker=create_sessionmaker(settings),
     )

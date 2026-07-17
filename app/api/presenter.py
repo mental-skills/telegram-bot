@@ -12,6 +12,7 @@ from app.application import ApplicationRuntime
 from app.content.models import SYSTEM_MAIN_MENU, SYSTEM_NEXT_SCENARIO
 from app.engine.types import ScenarioScreen, ScreenButton
 from app.mini_app.visuals import MiniAppVisualAsset
+from app.modules.identity import CURRENT_MODULE, ModuleIdentityError
 from app.services.progress import ProgressScreen, ProgressSummary
 
 MODULE_COMPLETION_NODE_ID = "module_completion"
@@ -22,6 +23,12 @@ def present_training(
     runtime: ApplicationRuntime,
 ) -> TrainingResponse:
     screen = progress.screen
+    module_identity = getattr(runtime, "module_identity", CURRENT_MODULE)
+    try:
+        public_module_id = module_identity.public_module_id(progress.trainer_session.module_id)
+        route_mode = module_identity.route_mode(progress.trainer_session.module_id)
+    except ModuleIdentityError as exc:
+        raise ValueError("Unknown session module identity") from exc
     visual_asset = runtime.mini_app_visuals.get_screen_visual(
         screen.scenario_id,
         screen.node_id,
@@ -31,6 +38,7 @@ def present_training(
 
     is_module_completion = (
         screen.node_id == MODULE_COMPLETION_NODE_ID
+        and route_mode == "full"
         and progress.trainer_session.module_id == runtime.scenario_registry.module_id
     )
     actions = (
@@ -40,6 +48,8 @@ def present_training(
     )
     bundle = runtime.scenario_registry.bundles[screen.scenario_id]
     return TrainingResponse(
+        module_id=public_module_id,
+        route_mode=route_mode,
         scenario_id=screen.scenario_id,
         content_version=screen.content_version,
         scenario_title=bundle.scenario.title,
@@ -72,11 +82,15 @@ def present_visual(asset: MiniAppVisualAsset) -> MiniAppVisualResponse:
 
 def present_progress(summary: ProgressSummary) -> ProgressResponse:
     return ProgressResponse(
+        module_id=CURRENT_MODULE.canonical_module_id,
+        route_mode="full",
         available_count=summary.available_count,
         completed_count=summary.completed_count,
         current_scenario_id=summary.current_scenario_id,
         situations=[
             SituationResponse(
+                module_id=CURRENT_MODULE.canonical_module_id,
+                route_mode="full",
                 scenario_id=item.scenario_id,
                 title=item.title,
                 estimated_minutes=item.estimated_minutes,

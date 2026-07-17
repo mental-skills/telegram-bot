@@ -8,9 +8,18 @@ from app.content.registry import ScenarioRegistry
 from app.core.errors import ScenarioStateError
 from app.db.models import TrainerSession, User
 from app.engine.types import ScenarioScreen, TransitionResult
+from app.modules.identity import CURRENT_MODULE, ModuleIdentity, RouteMode
 
-CallbackStatus = Literal["ok", "stale", "duplicate", "main_menu", "next_unavailable"]
-STANDALONE_MODULE_ID = "football_parent_standalone"
+CallbackStatus = Literal[
+    "ok",
+    "stale",
+    "duplicate",
+    "main_menu",
+    "next_unavailable",
+    "standalone_boundary",
+    "invalid_module_completion",
+]
+STANDALONE_MODULE_ID = CURRENT_MODULE.standalone_storage_id
 
 
 class UserRepositoryProtocol(Protocol):
@@ -133,11 +142,14 @@ class ProgressService:
         progress_repository: ProgressRepositoryProtocol,
         registry: ScenarioRegistry,
         privacy_version: str,
+        module_identity: ModuleIdentity = CURRENT_MODULE,
     ) -> None:
         self.user_repository = user_repository
         self.progress_repository = progress_repository
         self.registry = registry
         self.privacy_version = privacy_version
+        self.module_identity = module_identity
+        self.module_identity.validate_registry(registry.module_id)
 
     async def get_or_create_user(self, telegram_user_id: int) -> User:
         return await self.user_repository.get_or_create(telegram_user_id, self.privacy_version)
@@ -297,6 +309,7 @@ class ProgressService:
         session_id: int,
         revision: int,
         option_id: str,
+        route_mode: RouteMode = "full",
     ) -> CallbackResult:
         user = await self.get_or_create_user(telegram_user_id)
         if user.age_group is None:
@@ -307,13 +320,29 @@ class ProgressService:
             return CallbackResult(status="stale")
         if trainer_session.current_revision != revision:
             return CallbackResult(status="stale")
+        try:
+            storage_route_mode = self.module_identity.route_mode(trainer_session.module_id)
+        except ValueError:
+            return CallbackResult(status="stale")
+        if storage_route_mode != route_mode:
+            return CallbackResult(status="stale")
+        if (
+            route_mode == "full"
+            and trainer_session.module_id != self.registry.module_id
+        ):
+            return CallbackResult(status="stale")
 
         engine = self.registry.get_engine(trainer_session.scenario_id)
         transition = engine.transition(trainer_session.current_node, option_id)
         if transition.to_node == SYSTEM_MAIN_MENU:
             return CallbackResult(status="main_menu")
         if transition.to_node == SYSTEM_NEXT_SCENARIO:
+            if route_mode == "standalone":
+                return CallbackResult(status="standalone_boundary")
             return await self._handle_next_scenario(user, trainer_session, transition)
+        if transition.to_node == "module_completion":
+            if self.registry.next_scenario_id(trainer_session.scenario_id) is not None:
+                return CallbackResult(status="invalid_module_completion")
         if trainer_session.current_node == "completion" and transition.to_node == engine.entry_node:
             saved = await self.progress_repository.record_system_action(
                 trainer_session=trainer_session,
@@ -387,6 +416,27 @@ class ProgressService:
     ) -> CallbackResult:
         next_scenario_id = self.registry.next_scenario_id(trainer_session.scenario_id)
         if next_scenario_id is None:
+            engine = self.registry.get_engine(trainer_session.scenario_id)
+            if "module_completion" in engine.bundle.scenario.nodes:
+                saved = await self.progress_repository.record_system_action(
+                    trainer_session=trainer_session,
+                    option_id=transition.option_id,
+                    to_node="module_completion",
+                    tracking_code=transition.tracking_code,
+                    assessment=transition.assessment,
+                )
+                if not saved:
+                    return CallbackResult(status="duplicate")
+                await self.progress_repository.complete_session(trainer_session)
+                screen = engine.render("module_completion", user.age_group)  # type: ignore[arg-type]
+                return CallbackResult(
+                    status="ok",
+                    progress_screen=ProgressScreen(
+                        user=user,
+                        trainer_session=trainer_session,
+                        screen=screen,
+                    ),
+                )
             return CallbackResult(status="next_unavailable")
         saved = await self.progress_repository.record_system_action(
             trainer_session=trainer_session,

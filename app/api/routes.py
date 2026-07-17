@@ -200,8 +200,15 @@ async def transition(
         session_id=session_id,
         revision=payload.revision,
         option_id=payload.option_id,
+        route_mode="full",
     )
-    if result.status in {"stale", "duplicate", "next_unavailable"}:
+    if result.status in {
+        "stale",
+        "duplicate",
+        "next_unavailable",
+        "standalone_boundary",
+        "invalid_module_completion",
+    }:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=result.status)
     if result.status == "main_menu":
         return TransitionResponse(status="main_menu", training=None)

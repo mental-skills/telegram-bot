@@ -37,6 +37,8 @@ export interface Screen {
 }
 
 export interface Training {
+  module_id?: string;
+  route_mode?: "full" | "standalone";
   scenario_id: string;
   content_version: string;
   scenario_title: string;
@@ -47,6 +49,8 @@ export interface Training {
 }
 
 export interface Situation {
+  module_id?: string;
+  route_mode?: "full" | "standalone";
   scenario_id: string;
   title: string;
   estimated_minutes: number | null;
@@ -55,6 +59,8 @@ export interface Situation {
 }
 
 export interface Progress {
+  module_id?: string;
+  route_mode?: "full" | "standalone";
   available_count: number;
   completed_count: number;
   current_scenario_id: string | null;

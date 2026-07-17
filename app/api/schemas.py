@@ -79,6 +79,8 @@ class ScreenResponse(BaseModel):
 
 
 class TrainingResponse(BaseModel):
+    module_id: str
+    route_mode: Literal["full", "standalone"]
     scenario_id: str
     content_version: str
     scenario_title: str
@@ -89,6 +91,8 @@ class TrainingResponse(BaseModel):
 
 
 class SituationResponse(BaseModel):
+    module_id: str
+    route_mode: Literal["full", "standalone"]
     scenario_id: str
     title: str
     estimated_minutes: int | None
@@ -97,6 +101,8 @@ class SituationResponse(BaseModel):
 
 
 class ProgressResponse(BaseModel):
+    module_id: str
+    route_mode: Literal["full", "standalone"]
     available_count: int
     completed_count: int
     current_scenario_id: str | None
