@@ -3,17 +3,29 @@ from __future__ import annotations
 import logging
 
 from aiogram import Bot
-from aiogram.types import CallbackQuery, FSInputFile, InlineKeyboardMarkup, Message
+from aiogram.types import (
+    CallbackQuery,
+    FSInputFile,
+    InlineKeyboardMarkup,
+    Message,
+)
 
 from app.assets.repository import AssetRepository
 from app.bot.keyboards import scenario_keyboard
-from app.content.models import UiTexts
 from app.db.models import TrainerSession
 from app.engine.types import ScenarioScreen
 
 logger = logging.getLogger(__name__)
 
 TELEGRAM_CAPTION_LIMIT = 1024
+
+BOT_WELCOME_TEXT = (
+    "Mental Skills — ментальный спортзал для родителей юных футболистов.\n\n"
+    "7 ситуаций до, во время и после матча: выберите реакцию, оцените возможные последствия "
+    "и получите практический совет и готовую фразу."
+)
+
+BOT_APP_PROMPT = "Откройте ментальный спортзал в Mini App."
 
 
 def format_screen_text(screen: ScenarioScreen) -> str:
@@ -23,27 +35,59 @@ def format_screen_text(screen: ScenarioScreen) -> str:
     if screen.text:
         parts.append(screen.text)
     if screen.quote:
-        parts.append(f"<b>Готовая фраза:</b>\n«{screen.quote}»")
+        parts.append(f"<b>Готовая фраза:</b>\n{screen.quote}")
     return "\n\n".join(parts)
 
 
 async def send_start_card(
     message: Message,
     asset_repository: AssetRepository,
-    ui: UiTexts,
     reply_markup: InlineKeyboardMarkup,
 ) -> None:
-    text = f"<b>{ui.start_title}</b>\n\n{ui.start_text}"
-    if message.bot is None:
-        return
-    await _send_optional_photo(
-        bot=message.bot,
-        chat_id=message.chat.id,
+    """Send the branded welcome as one photo message with its WebApp button."""
+    await _send_branded_message(
+        message=message,
         asset_repository=asset_repository,
-        asset_id="brand_logo_horizontal",
-        text=text,
+        caption=BOT_WELCOME_TEXT,
         reply_markup=reply_markup,
     )
+
+
+async def send_app_launcher(
+    message: Message,
+    asset_repository: AssetRepository,
+    reply_markup: InlineKeyboardMarkup,
+) -> None:
+    await _send_branded_message(
+        message=message,
+        asset_repository=asset_repository,
+        caption=BOT_APP_PROMPT,
+        reply_markup=reply_markup,
+    )
+
+
+async def _send_branded_message(
+    message: Message,
+    asset_repository: AssetRepository,
+    caption: str,
+    reply_markup: InlineKeyboardMarkup,
+) -> None:
+    if message.bot is None:
+        return
+    try:
+        asset = asset_repository.get_runtime_asset("brand_logo_horizontal")
+        await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=FSInputFile(asset.path),
+            caption=caption,
+            reply_markup=reply_markup,
+        )
+    except Exception as exc:
+        logger.warning(
+            "welcome_media_fallback asset_id=brand_logo_horizontal error=%s",
+            exc.__class__.__name__,
+        )
+        await message.answer(caption, reply_markup=reply_markup)
 
 
 async def send_screen(

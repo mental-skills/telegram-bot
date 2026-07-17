@@ -20,6 +20,7 @@
         "sport",
         "language",
         "title",
+        "short_title",
         "stage",
         "age_groups",
         "entry_node",
@@ -42,6 +43,10 @@
           "const": "ru"
         },
         "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "short_title": {
           "type": "string",
           "minLength": 1
         },

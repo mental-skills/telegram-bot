@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 250" fill="none">
+  <defs>
+    <radialGradient id="halo" cx="0" cy="0" r="1" gradientTransform="translate(150 121) rotate(90) scale(106)"><stop stop-color="#28D45C" stop-opacity=".28"/><stop offset="1" stop-color="#28D45C" stop-opacity="0"/></radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="7"/></filter>
+  </defs>
+  <rect width="300" height="250" fill="url(#halo)"/>
+  <g stroke="#28D45C" stroke-opacity=".25">
+    <path d="m16 60 48 22 36-39 50 36 47-48 39 55 48-22"/>
+    <path d="m7 173 54-26 38 42 51-32 49 44 37-51 57 25"/>
+    <path d="M64 82 61 147M100 43l-1 146M150 79v78M197 31l2 170M236 86v64"/>
+  </g>
+  <g fill="#FFD400"><circle cx="16" cy="60" r="3"/><circle cx="100" cy="43" r="3"/><circle cx="197" cy="31" r="3"/><circle cx="284" cy="64" r="3"/><circle cx="7" cy="173" r="3"/><circle cx="99" cy="189" r="3"/><circle cx="199" cy="201" r="3"/><circle cx="293" cy="175" r="3"/></g>
+  <g stroke="#28D45C"><circle cx="150" cy="121" r="74" stroke-opacity=".14"/><circle cx="150" cy="121" r="57" stroke-opacity=".3" stroke-width="2"/><circle cx="150" cy="121" r="42" stroke-opacity=".65" stroke-width="2"/></g>
+  <circle cx="150" cy="121" r="34" fill="#07140B" stroke="#28D45C" stroke-width="2"/>
+  <path d="m132 121 12 13 27-30" stroke="#F7FFF9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="150" cy="121" r="46" stroke="#28D45C" stroke-opacity=".34" stroke-width="9" filter="url(#glow)"/>
+  <g stroke="#FFD400" stroke-linecap="round"><path d="M150 38v12M150 192v12M67 121h12M221 121h12M91 62l9 9M200 171l9 9M209 62l-9 9M100 171l-9 9"/></g>
+</svg>

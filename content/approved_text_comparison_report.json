@@ -1,0 +1,62 @@
+{
+  "approved_version": "v1-2026-07-16",
+  "approved_markdown": "docs/content/mental-skills-all-7-situations-approved-v1.md",
+  "approved_csv": "docs/content/mental-skills-all-7-situations-approved-v1.csv",
+  "approved_csv_rows": 705,
+  "approved_csv_situations": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "invalid_approval_status_rows": [],
+  "csv_rows_not_found_in_markdown": [],
+  "scenario_results": [
+    {
+      "scenario_id": "PREMATCH_GAME_REFUSAL_01",
+      "user_text_fields": 127,
+      "mismatches": 0
+    },
+    {
+      "scenario_id": "PREMATCH_INSTRUCTIONS_02",
+      "user_text_fields": 127,
+      "mismatches": 0
+    },
+    {
+      "scenario_id": "CHILD_ERROR_LOOKS_AT_PARENT_03",
+      "user_text_fields": 125,
+      "mismatches": 0
+    },
+    {
+      "scenario_id": "CHILD_LEFT_ON_BENCH_04",
+      "user_text_fields": 127,
+      "mismatches": 0
+    },
+    {
+      "scenario_id": "DISPUTED_REFEREE_DECISION_05",
+      "user_text_fields": 131,
+      "mismatches": 0
+    },
+    {
+      "scenario_id": "CHILD_SILENT_AFTER_DEFEAT_06",
+      "user_text_fields": 131,
+      "mismatches": 0
+    },
+    {
+      "scenario_id": "PARENT_RESPONSE_AFTER_VICTORY_07",
+      "user_text_fields": 134,
+      "mismatches": 0
+    }
+  ],
+  "user_text_fields_checked": 902,
+  "mismatch_count": 0,
+  "mismatches": [],
+  "implementation_authorized_text": [
+    "PARENT_RESPONSE_AFTER_VICTORY_07:/scenario/nodes/module_completion/title",
+    "PARENT_RESPONSE_AFTER_VICTORY_07:/scenario/nodes/module_completion/text"
+  ],
+  "status": "passed"
+}

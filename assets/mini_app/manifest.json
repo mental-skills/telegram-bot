@@ -1,0 +1,36 @@
+{
+  "version": "2.0",
+  "assets": {
+    "brand_logo_official": {
+      "path": "assets/runtime/brand_logo_horizontal.png",
+      "alt": "Фирменный логотип Mental Skills",
+      "kind": "logo",
+      "shared_brand": true
+    },
+    "premium_neural_mesh": {
+      "path": "assets/mini_app/premium-neural-mesh.svg",
+      "alt": "Технологичная нейронная сетка",
+      "kind": "background"
+    },
+    "premium_football_matrix": {
+      "path": "assets/mini_app/premium-football-matrix.svg",
+      "alt": "Технологичная схема футбольного поля",
+      "kind": "football_focus"
+    },
+    "premium_consequence_signal": {
+      "path": "assets/mini_app/premium-consequence-signal.svg",
+      "alt": "Сигнал для осмысления последствия",
+      "kind": "reflection"
+    },
+    "premium_three_questions": {
+      "path": "assets/mini_app/premium-three-questions.svg",
+      "alt": "Технологичная схема трёх вопросов",
+      "kind": "practice"
+    },
+    "premium_completion_network": {
+      "path": "assets/mini_app/premium-completion-network.svg",
+      "alt": "Фирменная сеть завершённой ситуации",
+      "kind": "progress"
+    }
+  }
+}

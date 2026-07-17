@@ -41,7 +41,7 @@ class ScenarioEngine:
             quote=node.quote,
             media=node.media,
             buttons=tuple(self._buttons_for_node(node)),
-            is_completion=node.type in {"completion", "emergency"},
+            is_completion=node.type == "completion",
         )
 
     def transition(self, current_node_id: str, option_id: str) -> TransitionResult:

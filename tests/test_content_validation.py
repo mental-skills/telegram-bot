@@ -2,15 +2,19 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
+from app.api.presenter import present_training
 from app.assets.repository import AssetRepository
 from app.content.models import SYSTEM_ROUTES, ScenarioBundle
 from app.content.registry import ScenarioRegistry
 from app.content.repository import ContentRepository
 from app.content.validator import ScenarioValidator
 from app.core.errors import AssetValidationError, ContentValidationError
+from app.db.models import TrainerSession, User
+from app.services.progress import ProgressScreen
 
 
 def test_json_passes_schema_and_extended_validation(
@@ -19,7 +23,7 @@ def test_json_passes_schema_and_extended_validation(
     bundle = content_repository.load()
     assert bundle.schema_version == "1.2"
     assert bundle.scenario.id == "PREMATCH_INSTRUCTIONS_02"
-    assert bundle.scenario.content_version == "2026-07-15.3-brand-v2"
+    assert bundle.scenario.content_version == "2026-07-16.1-approved-v1"
 
 
 def test_scenario_catalog_loads_enabled_scenarios(scenario_registry: ScenarioRegistry) -> None:
@@ -28,6 +32,11 @@ def test_scenario_catalog_loads_enabled_scenarios(scenario_registry: ScenarioReg
     assert scenario_registry.enabled_order == (
         "PREMATCH_GAME_REFUSAL_01",
         "PREMATCH_INSTRUCTIONS_02",
+        "CHILD_ERROR_LOOKS_AT_PARENT_03",
+        "CHILD_LEFT_ON_BENCH_04",
+        "DISPUTED_REFEREE_DECISION_05",
+        "CHILD_SILENT_AFTER_DEFEAT_06",
+        "PARENT_RESPONSE_AFTER_VICTORY_07",
     )
     assert set(scenario_registry.engines) == set(scenario_registry.enabled_order)
 
@@ -35,8 +44,44 @@ def test_scenario_catalog_loads_enabled_scenarios(scenario_registry: ScenarioReg
 def test_all_enabled_scenarios_pass_schema(
     scenario_registry: ScenarioRegistry,
 ) -> None:
-    assert scenario_registry.bundles["PREMATCH_GAME_REFUSAL_01"].scenario.title
-    assert scenario_registry.bundles["PREMATCH_INSTRUCTIONS_02"].scenario.title
+    assert len(scenario_registry.bundles) == 7
+    assert all(bundle.scenario.title for bundle in scenario_registry.bundles.values())
+
+
+def test_completion_api_payload_excludes_editorial_fixation(
+    scenario_registry: ScenarioRegistry,
+) -> None:
+    engine = scenario_registry.get_engine("PARENT_RESPONSE_AFTER_VICTORY_07")
+    user = User(id=1, telegram_user_id=123, age_group="9-12")
+    session = TrainerSession(
+        id=1,
+        user_id=user.id,
+        module_id=scenario_registry.module_id,
+        scenario_id=engine.scenario_id,
+        content_version=engine.content_version,
+        current_node="completion",
+        current_revision=1,
+        status="completed",
+    )
+    runtime = SimpleNamespace(
+        scenario_registry=scenario_registry,
+        mini_app_visuals=SimpleNamespace(get_screen_visual=lambda *_args: None),
+        ui_texts=SimpleNamespace(back_to_menu="Главное меню"),
+    )
+
+    for node_id in ("completion", "module_completion"):
+        screen = engine.render(node_id, "9-12")
+        response = present_training(
+            ProgressScreen(user=user, trainer_session=session, screen=screen),
+            runtime,  # type: ignore[arg-type]
+        )
+        payload = json.dumps(response.model_dump(), ensure_ascii=False)
+        assert "Итоговая фиксация" not in payload
+        assert "редакторский источник истины" not in payload
+        assert "#" not in response.screen.text
+        assert "---" not in response.screen.text
+
+    assert engine.render("completion", "9-12").text.endswith("Радость — вклад — развитие.")
 
 
 def test_all_transitions_resolve(scenario_registry: ScenarioRegistry) -> None:

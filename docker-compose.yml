@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: mental_skills
       POSTGRES_USER: mental
-      POSTGRES_PASSWORD: mental
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mental}
     ports:
       - "5432:5432"
     healthcheck:
@@ -15,16 +15,63 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  migrate:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://mental:mental@db:5432/mental_skills}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+
   bot:
     build: .
     env_file:
       - path: .env
         required: false
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://mental:mental@db:5432/mental_skills}
+      MINI_APP_URL: ${MINI_APP_URL:-http://localhost:8080}
     depends_on:
-      db:
+      migrate:
+        condition: service_completed_successfully
+    command: ["python", "-m", "app.main"]
+
+  api:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://mental:mental@db:5432/mental_skills}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEV_AUTH_ENABLED: ${DEV_AUTH_ENABLED:-false}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      WEBAPP_SESSION_SECRET: ${WEBAPP_SESSION_SECRET:-local-development-session-secret-change-me}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_DEV_AUTH: ${DEV_AUTH_ENABLED:-false}
+    depends_on:
+      api:
         condition: service_healthy
-    command: >
-      sh -c "alembic upgrade head && python -m app.main"
+    ports:
+      - "8080:80"
 
 volumes:
   postgres_data:

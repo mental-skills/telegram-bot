@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
 from app.bot.callbacks import age_callback, menu_callback, reset_callback
 from app.content.models import AgeGroup, UiTexts
@@ -8,24 +8,35 @@ from app.engine.types import ScenarioScreen
 from app.services.progress import CallbackPayload
 
 
-def main_menu_keyboard(ui: UiTexts, has_age: bool) -> InlineKeyboardMarkup:
-    buttons = [
-        [InlineKeyboardButton(text=ui.continue_training, callback_data=menu_callback("continue"))],
-        [
-            InlineKeyboardButton(
-                text=ui.start_scenario_02,
-                callback_data=menu_callback("scenario_02"),
-            )
-        ],
-        [InlineKeyboardButton(text=ui.tools, callback_data=menu_callback("tools"))],
-        [InlineKeyboardButton(text=ui.about, callback_data=menu_callback("about"))],
-        [InlineKeyboardButton(text=ui.privacy, callback_data=menu_callback("privacy"))],
-    ]
-    if has_age:
-        buttons.append(
-            [InlineKeyboardButton(text=ui.change_age, callback_data=menu_callback("age"))]
-        )
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+def main_menu_keyboard(
+    ui: UiTexts,
+    has_age: bool,
+    mini_app_url: str | None = None,
+    *,
+    continue_route: bool = False,
+) -> InlineKeyboardMarkup:
+    """Return the single entry point into the Mini App.
+
+    ``ui`` and ``has_age`` remain in the signature for compatibility with
+    callers from older bot flows. The Mini App owns age selection, progress,
+    tools and scenario navigation, so none of those actions are duplicated in
+    Telegram messages anymore.
+    """
+    del ui, has_age
+    return mini_app_keyboard(mini_app_url, continue_route=continue_route)
+
+
+def mini_app_keyboard(
+    mini_app_url: str | None,
+    *,
+    continue_route: bool = False,
+) -> InlineKeyboardMarkup:
+    if not mini_app_url:
+        return InlineKeyboardMarkup(inline_keyboard=[])
+    label = "Продолжить маршрут" if continue_route else "Открыть ментальный спортзал"
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text=label, web_app=WebAppInfo(url=mini_app_url))]]
+    )
 
 
 def age_keyboard(ui: UiTexts) -> InlineKeyboardMarkup:

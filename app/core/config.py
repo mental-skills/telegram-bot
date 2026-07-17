@@ -19,6 +19,22 @@ class Settings(BaseSettings):
     scenario_id: str = Field(default="PREMATCH_INSTRUCTIONS_02", alias="SCENARIO_ID")
     privacy_version: str = Field(default="2026-07-15", alias="PRIVACY_VERSION")
     rate_limit_messages_per_minute: int = Field(default=30, alias="RATE_LIMIT_MESSAGES_PER_MINUTE")
+    environment: str = Field(default="development", alias="ENVIRONMENT")
+    mini_app_url: str = Field(default="http://localhost:8080", alias="MINI_APP_URL")
+    telegram_bot_username: str = Field(default="", alias="TELEGRAM_BOT_USERNAME")
+    telegram_auth_max_age_seconds: int = Field(
+        default=3600, alias="TELEGRAM_AUTH_MAX_AGE_SECONDS"
+    )
+    webapp_session_secret: str = Field(
+        default="local-development-session-secret-change-me",
+        alias="WEBAPP_SESSION_SECRET",
+    )
+    webapp_session_ttl_seconds: int = Field(
+        default=3600, alias="WEBAPP_SESSION_TTL_SECONDS"
+    )
+    session_cookie_secure: bool = Field(default=False, alias="SESSION_COOKIE_SECURE")
+    dev_auth_enabled: bool = Field(default=False, alias="DEV_AUTH_ENABLED")
+    dev_auth_telegram_user_id: int = Field(default=900000001, alias="DEV_AUTH_TELEGRAM_USER_ID")
 
     @property
     def scenario_path(self) -> Path:
@@ -37,6 +53,10 @@ class Settings(BaseSettings):
         return self.content_dir / "ui_texts.ru.json"
 
     @property
+    def mini_app_visuals_path(self) -> Path:
+        return self.content_dir / "mini_app_visuals.json"
+
+    @property
     def asset_manifest_path(self) -> Path:
         return self.assets_dir / "asset_manifest.json"
 
@@ -47,6 +67,10 @@ class Settings(BaseSettings):
     @property
     def brand_tokens_path(self) -> Path:
         return self.assets_dir / "brand_tokens.json"
+
+    @property
+    def mini_app_asset_manifest_path(self) -> Path:
+        return self.assets_dir / "mini_app" / "manifest.json"
 
 
 @lru_cache
